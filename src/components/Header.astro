@@ -1,0 +1,30 @@
+---
+import { SITE, SECTIONS, SECTION_KEYS } from '../consts';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/">
+      <span class="dot"></span>
+      <span>
+        {SITE.shortTitle}
+        <small>EEG · DEPRESSION</small>
+      </span>
+    </a>
+    <nav class="main">
+      {
+        SECTION_KEYS.map((k) => (
+          <a href={`/${k}`} aria-current={isActive(`/${k}`) ? 'page' : undefined}>
+            {SECTIONS[k].label}
+          </a>
+        ))
+      }
+      <a href="/about" aria-current={isActive('/about') ? 'page' : undefined}>关于</a>
+      <a href="/resources" aria-current={isActive('/resources') ? 'page' : undefined}>资源</a>
+    </nav>
+  </div>
+</header>

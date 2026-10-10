@@ -1,0 +1,93 @@
+# ===========================================================================
+#  用 GitHub 自己当"后端"：把网站直接发布到 GitHub Pages
+# ===========================================================================
+#  触发方式：推送到 main 分支，或在仓库 Actions 页面手动点 Run workflow。
+#
+#  它做的事情：
+#    1. 在 GitHub 的服务器上装依赖（npm ci）
+#    2. 构建站点（npm run build → dist/）
+#    3. 把 dist/ 作为静态站点发布到 GitHub Pages
+#
+#  也就是说：整个过程不经过你本机，GitHub 既是代码仓库、又是构建机、又是托管。
+#
+#  ── 一次性配置（必须做，否则不会生效）────────────────────────────────
+#    仓库 → Settings → Pages → Build and deployment → Source 选 "GitHub Actions"
+#
+#  ── 绑定你自己的域名 ──────────────────────────────────────────────────
+#    仓库 → Settings → Pages → Custom domain 填你的域名
+#    然后在你的域名注册商处按 GitHub 提示添加 DNS 记录：
+#       A 记录   @    185.199.108.153 / .109.154 / .110.153 / .111.153
+#       CNAME    www  <你的用户名>.github.io
+#    勾选 "Enforce HTTPS"（证书 GitHub 自动签发）
+#
+#  ⚠️ 注意：如果用自定义域名，astro.config.mjs 里的 SITE_URL 要改成你的域名，
+#     并且不需要设置 base（根路径部署）。
+#     如果**不用**自定义域名、走 https://<用户名>.github.io/<仓库名>/，
+#     则必须在 astro.config.mjs 里加 base: '/<仓库名>'，否则 CSS 和链接会 404。
+# ===========================================================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时只跑一个部署，新的推送取消排队中的旧任务
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 构建站点
+        run: npm run build
+        env:
+          ASTRO_TELEMETRY_DISABLED: '1'
+
+      # ⚠️ 这一步只读取 Pages 配置，不能代替手动开启 ——
+      #    GITHUB_TOKEN 没有创建 Pages 站点的权限（enablement: true 也不管用）。
+      #    首次部署前必须手动做一次：
+      #      Settings → Pages → Build and deployment → Source 选 "GitHub Actions"
+      #
+      # ⚠️ 另一个坑：GitHub 免费账号的 Pages 只对【公开】仓库可用。
+      #    私有仓库需要 Pro / Team / Enterprise 计划，
+      #    或者改用 Cloudflare Pages（免费且支持私有仓库）。
+      - name: 配置 Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

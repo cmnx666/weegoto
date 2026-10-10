@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from './ArticleCard.astro';
+import { SECTIONS, type SectionKey } from '../consts';
+
+interface Props {
+  section: SectionKey;
+}
+
+const { section } = Astro.props;
+const meta = SECTIONS[section];
+
+const posts = (await getCollection(section, ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<BaseLayout title={meta.label} description={meta.description}>
+  <div class="section-head">
+    <div class="en">{meta.en}</div>
+    <h1>{meta.label}</h1>
+    <p>{meta.description}</p>
+  </div>
+
+  {
+    posts.length === 0 ? (
+      <div class="empty">
+        这个栏目还没有文章。<br />
+        在 <code>src/content/{section}/</code> 里新建一个 <code>.md</code> 文件就会出现在这里。
+      </div>
+    ) : (
+      <div class="cards">
+        {posts.map((post) => (
+          <ArticleCard
+            href={`/${section}/${post.id}`}
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date}
+            tags={post.data.tags}
+          />
+        ))}
+      </div>
+    )
+  }
+</BaseLayout>

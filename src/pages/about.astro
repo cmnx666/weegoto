@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout title="关于我们" description="项目背景、团队成员与数据集说明。">
+  <div class="section-head">
+    <div class="en">About</div>
+    <h1>关于我们</h1>
+    <p>{SITE.description}</p>
+  </div>
+
+  <div class="prose">
+    <h2>我们在做什么</h2>
+    <p>
+      我们希望探索一件事：<strong>能否用头皮脑电（EEG）区分抑郁症患者与健康对照</strong>。
+      第一步，我们建立了一条尽量规范的基线流程；第二步，我们开始检查"这个结果到底可不可信"。
+    </p>
+    <p>
+      第二条比第一条更重要。在核查原始文件的头部信息时，我们发现两组数据的<strong>采集时间几乎完全错开</strong>，
+      这意味着模型学到的东西无法与"采集批次差异"区分开。我们把这件事完整地记录了下来。
+    </p>
+
+    <h2>技术路线概览</h2>
+    <ul>
+      <li><strong>预处理</strong>：MNE（通道归一化 → 坏通道插值 → 0.5–45 Hz 带通 + 50 Hz 陷波 → 平均参考 → ICA + ICLabel → 2 秒分段 → 坏段剔除）</li>
+      <li><strong>特征</strong>：Welch 功率谱 → 5 个频带平均功率 → 取 log10 → 19 通道 × 5 频带 = 95 维</li>
+      <li><strong>模型</strong>：标准化 + RBF 核 SVM，三个条件（EC / EO / TASK）各训一个，被试级概率融合</li>
+      <li><strong>评估</strong>：按被试分组的 5 折交叉验证，MD5 内容去重防泄漏，bootstrap 置信区间 + 置换检验</li>
+      <li><strong>下一步</strong>：端到端深度学习 → 双向 Mamba</li>
+    </ul>
+
+    <h2>团队</h2>
+    <!-- TODO: 换成真实的成员信息，上网站前请先征得本人同意 -->
+    <ul>
+      <li>指导教师：（待填写）</li>
+      <li>项目成员：（待填写）</li>
+    </ul>
+
+    <h2>数据集与致谢</h2>
+    <p>
+      本研究使用公开脑电数据集 <strong>HUSM_EEG</strong>：181 个 EDF 文件、64 名被试、
+      19 个标准 10-20 电极、采样率 256 Hz，包含闭眼静息（EC）、睁眼静息（EO）与认知任务（TASK）三种条件。
+    </p>
+    <p>感谢数据采集者与公开者。数据的使用遵循其原始许可条款。</p>
+
+    <div class="callout danger">
+      <strong>关于数据隐私的声明</strong>
+      本站<strong>只发布聚合统计结果</strong>（准确率、AUC、混淆矩阵、ROC 曲线等），
+      <strong>不包含任何被试的原始脑电数据、姓名、性别、出生日期或量表分数</strong>。
+      代码仓库同样通过 <code>.gitignore</code> 排除了所有原始数据与含个人信息的元数据文件。
+    </div>
+
+    {SITE.email && (
+      <p>
+        联系方式：<a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      </p>
+    )}
+  </div>
+</BaseLayout>

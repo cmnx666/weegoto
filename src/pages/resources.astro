@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="资源" description="代码仓库、汇报材料、图表与学习路线。">
+  <div class="section-head">
+    <div class="en">Resources</div>
+    <h1>资源</h1>
+    <p>项目产出的代码、材料与学习笔记。表格里的链接请替换成你们自己的地址。</p>
+  </div>
+
+  <div class="prose">
+    <h2>代码与数据</h2>
+    <div class="callout warn">
+      <strong>仓库暂不公开 / 待整理</strong>
+      公开前请务必确认：<code>data/</code>、<code>results/</code>、<code>*.fif</code>、<code>*.edf</code>
+      以及含被试姓名的元数据文件<strong>都不在提交历史里</strong>。
+    </div>
+    <ul>
+      <li>代码仓库：<a href="https://github.com/">（待填写）</a></li>
+      <li>完整技术报告：<code>REPORT.md</code>（含去重日志与批次混杂证据）</li>
+    </ul>
+
+    <h2>汇报与材料</h2>
+    <ul>
+      <li>阶段汇报（通俗版）：项目汇报 PDF</li>
+      <li>模型演进谱系：从 SVM 到 Bi-Mamba</li>
+      <li>深度学习推进路线：知识地图与阶段规划</li>
+    </ul>
+
+    <h2>关键结果</h2>
+    <table>
+      <thead>
+        <tr><th>指标</th><th>数值</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>被试级准确率</td><td>88.7%</td><td>95% CI 80.6–96.8</td></tr>
+        <tr><td>被试级 AUC</td><td>0.950</td><td>置换检验 p = 0.0099</td></tr>
+        <tr><td>敏感度 / 特异度</td><td>0.94 / 0.83</td><td>阈值 0.5</td></tr>
+        <tr><td>仅采集时间戳的 AUC</td><td>0.892</td><td><strong>完全不看脑电</strong></td></tr>
+        <tr><td>仅 1 个全局幅度标量的 AUC</td><td>0.817</td><td><strong>完全不看脑电</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>学习资料</h2>
+    <ul>
+      <li>检索关键词：<code>Mamba EEG classification</code>、<code>bidirectional Mamba EEG</code>、<code>subject-wise cross validation EEG</code></li>
+      <li>纯 PyTorch 版 Mamba 实现：<a href="https://github.com/alxndrTL/mamba.py">mamba.py</a>（Windows 上无需编译 CUDA）</li>
+    </ul>
+  </div>
+</BaseLayout>

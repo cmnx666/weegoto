@@ -1,0 +1,22 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  date: Date;
+  tags: string[];
+}
+
+const { href, title, description, date, tags } = Astro.props;
+const fmt = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<a class="card" href={href}>
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <div class="meta">
+    <span>{fmt(date)}</span>
+    {tags.map((t) => <span class="tag">{t}</span>)}
+  </div>
+</a>

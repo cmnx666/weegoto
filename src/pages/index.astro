@@ -1,0 +1,86 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { SITE, SECTIONS, SECTION_KEYS } from '../consts';
+
+const grouped = await Promise.all(
+  SECTION_KEYS.map(async (k) => {
+    const posts = await getCollection(k, ({ data }) => !data.draft);
+    return posts.map((entry) => ({ entry, section: k }));
+  })
+);
+const latest = grouped
+  .flat()
+  .sort((a, b) => b.entry.data.date.valueOf() - a.entry.data.date.valueOf())
+  .slice(0, 4);
+
+const counts = Object.fromEntries(
+  grouped.map((items, i) => [SECTION_KEYS[i], items.length])
+);
+---
+
+<BaseLayout>
+  <section class="hero">
+    <span class="eyebrow">项目主页 · PROJECT HOME</span>
+    <h1>用脑电区分抑郁症与健康对照</h1>
+    <p>
+      我们建立了一条可复现的基线（MNE 预处理 + 频带功率特征 + SVM），
+      并在核查数据的过程中发现了一个更值得说的问题 ——
+      <strong>该数据集的采集批次与标签几乎完全共线</strong>。这里记录我们做到哪一步、往哪走、以及踩过的坑。
+    </p>
+
+    <div class="status">
+      <div class="item"><span class="k">被试级准确率</span><span class="v">88.7%</span></div>
+      <div class="item"><span class="k">被试级 AUC</span><span class="v">0.950</span></div>
+      <div class="item"><span class="k">被试 / 片段</span><span class="v">62 / 35,400</span></div>
+      <div class="item"><span class="k">当前阶段</span><span class="v ok">深度学习探索</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div class="en">Latest</div>
+      <h1 style="font-size:24px">最新更新</h1>
+    </div>
+
+    {
+      latest.length === 0 ? (
+        <div class="empty">还没有内容。在 <code>src/content/</code> 下新建 <code>.md</code> 文件即可。</div>
+      ) : (
+        <div class="cards">
+          {latest.map(({ entry, section }) => (
+            <ArticleCard
+              href={`/${section}/${entry.id}`}
+              title={entry.data.title}
+              description={entry.data.description}
+              date={entry.data.date}
+              tags={[SECTIONS[section].label, ...entry.data.tags]}
+            />
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <section style="margin-top:52px">
+    <div class="section-head">
+      <div class="en">Sections</div>
+      <h1 style="font-size:24px">栏目</h1>
+    </div>
+    <div class="cards">
+      {
+        SECTION_KEYS.map((k) => (
+          <a class="card" href={`/${k}`}>
+            <h3>
+              {SECTIONS[k].label} <span style="color:var(--muted);font-weight:400;font-size:14px">
+                （{counts[k]} 篇）
+              </span>
+            </h3>
+            <p>{SECTIONS[k].description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

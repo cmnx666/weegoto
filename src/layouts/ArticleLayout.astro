@@ -1,0 +1,37 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import { SECTIONS, type SectionKey } from '../consts';
+
+interface Props {
+  entry: CollectionEntry<SectionKey>;
+  section: SectionKey;
+}
+
+const { entry, section } = Astro.props;
+const { Content } = await render(entry);
+const meta = SECTIONS[section];
+const fmt = (d: Date) =>
+  `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+---
+
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <article>
+    <div class="crumb">
+      <a href="/">首页</a> / <a href={`/${section}`}>{meta.label}</a>
+    </div>
+
+    <header class="article-head">
+      <h1>{entry.data.title}</h1>
+      <div class="meta">
+        <span>{fmt(entry.data.date)}</span>
+        {entry.data.tags.map((t) => <span class="tag">{t}</span>)}
+      </div>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
