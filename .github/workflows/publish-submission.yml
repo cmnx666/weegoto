@@ -1,12 +1,22 @@
 # ===========================================================================
 #  发布访客投稿：Issue  →  文章  →  网站
 # ===========================================================================
-#  项目组在一条「投稿心得」Issue 上打上「已采纳」标签，这个工作流就会：
+#  两种触发方式（任选其一，效果完全一样）：
+#
+#   方式 A（推荐，零设置）  在 Issue 里发一条评论，内容以  /发布  开头
+#   方式 B（需先建标签）    在 Issue 上打一个名为「已采纳」的标签
+#
+#    ⚠️ 方式 B 需要仓库里**先存在**这个标签。GitHub 不会自动创建它，
+#       如果标签不存在，你就只能从已有标签里挑，名字对不上 → 任务被静默跳过。
+#       建标签：仓库 → Issues → Labels → New label → 名称填「已采纳」
+#       所以默认请用方式 A。
+#
+#  触发后依次做：
 #    1. 解析 Issue 内容（并校验三项同意条款是否都勾了）
 #    2. 生成 src/content/notes/<slug>.md
 #    3. 提交并推送到 main
 #    4. 主动触发 deploy.yml（见下方说明）
-#    5. 回到 Issue 里回复「已上线」和文章网址
+#    5. 回到 Issue 里回复结果
 #
 #  ⚠️ 为什么第 4 步必须显式触发？
 #     用默认的 GITHUB_TOKEN 推送的提交，**不会**触发其它 on: push 工作流
@@ -19,6 +29,8 @@ name: 发布访客投稿
 on:
   issues:
     types: [labeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -27,8 +39,17 @@ permissions:
 
 jobs:
   publish:
-    # 只有打上「已采纳」标签才发布 —— 这是人工审核环节
-    if: github.event.label.name == '已采纳'
+    # 只有项目组成员（作者/成员/协作者）的指令才生效，普通访客发 /发布 不会被采纳
+    if: >-
+      github.event.issue.pull_request == null &&
+      (
+        (github.event_name == 'issues' &&
+         github.event.label.name == '已采纳') ||
+        (github.event_name == 'issue_comment' &&
+         startsWith(github.event.comment.body, '/发布') &&
+         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                  github.event.comment.author_association))
+      )
     runs-on: ubuntu-latest
 
     steps:
@@ -103,7 +124,7 @@ jobs:
                 '',
                 '部署大约需要 1 分钟，稍等片刻即可访问。',
                 '',
-                '感谢你的分享！如果之后想修改内容，直接编辑这条 Issue 后重新打一次 `已采纳` 标签即可。',
+                '感谢你的分享！如果之后想修改内容，直接编辑这条 Issue，然后重新发一次 `/发布` 即可（网址不变）。',
               ].join('\n'),
             });
 
@@ -125,7 +146,7 @@ jobs:
                 '2. 必填字段（文章标题 / 一句话摘要 / 正文）为空',
                 '3. 链接短名与已有文章重名',
                 '',
-                '请检查后修正内容，然后去掉 `已采纳` 标签再重新打上一次。',
+                '请检查后修正内容，然后重新发一次 `/发布`。',
                 '',
                 `详细报错见 [Actions 日志](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/publish-submission.yml)。`,
               ].join('\n'),
