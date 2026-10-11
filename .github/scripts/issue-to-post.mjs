@@ -31,6 +31,21 @@ const FIELDS = {
 
 const CONSENT_COUNT = 3;
 
+/**
+ * GitHub Issue Form 里**留空的选填项**会被渲染成 "_No response_" 这个占位符，
+ * 而不是空字符串。不过滤的话，它会原样写进 frontmatter：
+ *     author: "_No response_"
+ *     tags: ["_No response_"]
+ * 所以所有取值都要先过一遍这里。
+ */
+const NO_RESPONSE = '_No response_';
+
+/** 取出原始值，并把 GitHub 的占位符当成空 */
+function raw(value) {
+  const s = String(value ?? '').trim();
+  return s === NO_RESPONSE ? '' : s;
+}
+
 // --- 工具 -------------------------------------------------------------------
 
 const die = (msg) => {
@@ -80,7 +95,7 @@ function parseIssueForm(body) {
 
 /** 把值压成一行，并去掉会破坏手写 frontmatter 解析器的字符 */
 function oneLine(value, { max = 200 } = {}) {
-  return String(value ?? '')
+  return raw(value)
     .replace(/\s+/g, ' ')
     .replace(/["""'']/g, '')
     .replace(/\\/g, '')
@@ -89,8 +104,8 @@ function oneLine(value, { max = 200 } = {}) {
 }
 
 /** 生成安全的 slug：只允许小写字母、数字、连字符 */
-function toSlug(raw) {
-  return String(raw ?? '')
+function toSlug(value) {
+  return raw(value)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -119,14 +134,14 @@ console.log('解析到的字段：', Object.keys(fields).join(' / '));
 // 1) 必填校验
 const title = oneLine(fields[FIELDS.title] || issueTitle.replace(/^\[投稿\]\s*/, ''), { max: 120 });
 const summary = oneLine(fields[FIELDS.summary], { max: 200 });
-const content = (fields[FIELDS.content] || '').trim();
+const content = raw(fields[FIELDS.content]);
 
 if (!title) die(`缺少必填字段：${FIELDS.title}`);
 if (!summary) die(`缺少必填字段：${FIELDS.summary}`);
 if (!content) die(`缺少必填字段：${FIELDS.content}`);
 
 // 2) 同意条款校验（伦理红线，必须逐项勾选）
-const consent = checkConsent(fields[FIELDS.terms] || '');
+const consent = checkConsent(raw(fields[FIELDS.terms]));
 if (!consent.ok) {
   die(
     `同意条款未全部勾选（已勾 ${consent.checked} 项，未勾 ${consent.unchecked} 项）。` +
@@ -137,7 +152,7 @@ console.log('✅ 同意条款：三项已全部勾选');
 
 // 3) 组装字段
 const author = oneLine(fields[FIELDS.author]) || `匿名访客（GitHub @${issueLogin}）`;
-const tags = (fields[FIELDS.tags] || '')
+const tags = raw(fields[FIELDS.tags])
   .split(/[,，、]/)
   .map((t) => oneLine(t, { max: 24 }))
   .filter(Boolean)
