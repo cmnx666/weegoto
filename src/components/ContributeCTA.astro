@@ -1,9 +1,9 @@
 ---
-// 「心得分享」栏目顶部的投稿入口
+// 「心得分享」栏目顶部的投稿入口 —— V2 突触风格
 import { CONTRIBUTE } from '../consts';
 ---
 
-<section class="contribute-cta">
+<section class="contribute-cta" data-cursor="card" data-magnetic="0.1" data-tag="投稿 →">
   <div class="cta-main">
     <span class="badge">开放投稿</span>
     <h2>这个栏目，欢迎所有人来写</h2>
@@ -12,10 +12,13 @@ import { CONTRIBUTE } from '../consts';
       或者你对脑电与抑郁症这个话题的任何观察。经项目组审核后发布。
     </p>
     <div class="cta-actions">
-      <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">
+      <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener"
+         data-cursor="button" data-magnetic="0.4" data-tag="去投稿 →">
         ✍️ 我要投稿
       </a>
-      <a class="btn ghost" href={CONTRIBUTE.guideUrl}>先看投稿指南</a>
+      <a class="btn ghost" href={CONTRIBUTE.guideUrl} data-cursor="button" data-magnetic="0.4" data-tag="看指南 →">
+        先看投稿指南
+      </a>
     </div>
     <ul class="cta-facts">
       <li>需要 GitHub 账号（投稿走 GitHub 表单）</li>
@@ -38,14 +41,17 @@ import { CONTRIBUTE } from '../consts';
   .contribute-cta {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--brand) 7%, var(--surface)),
-      var(--surface)
+      rgba(167, 139, 250, 0.09),
+      var(--panel) 55%
     );
-    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
+    border: 1px solid var(--vi-line-2);
     border-radius: var(--radius);
     padding: 26px 28px;
     margin-bottom: 30px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: var(--shadow);
+    will-change: transform;
   }
 
   .badge {
@@ -53,9 +59,9 @@ import { CONTRIBUTE } from '../consts';
     font-size: 11.5px;
     font-weight: 800;
     letter-spacing: 0.1em;
-    color: var(--brand);
-    background: var(--brand-soft);
-    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    color: var(--vi);
+    background: var(--vi-soft);
+    border: 1px solid var(--vi-line-2);
     border-radius: 999px;
     padding: 3px 12px;
     margin-bottom: 12px;
@@ -65,6 +71,8 @@ import { CONTRIBUTE } from '../consts';
     margin: 0 0 10px;
     font-size: clamp(20px, 2.8vw, 25px);
     letter-spacing: -0.015em;
+    font-weight: 800;
+    color: var(--ink);
   }
 
   .cta-main > p {
@@ -87,27 +95,27 @@ import { CONTRIBUTE } from '../consts';
     gap: 7px;
     font-size: 14.6px;
     font-weight: 700;
-    padding: 9px 20px;
-    border-radius: 9px;
+    padding: 10px 22px;
+    border-radius: 999px;
     border: 1px solid transparent;
-    transition: transform 0.14s ease, opacity 0.14s ease;
+    will-change: transform;
+    transition: box-shadow 0.18s, border-color 0.18s, color 0.18s;
   }
-  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn:hover { text-decoration: none; }
 
   .btn.primary {
-    background: var(--brand);
-    color: #fff;
+    background: linear-gradient(120deg, var(--vi-deep), var(--vi));
+    color: #120a24;
+    box-shadow: 0 6px 26px rgba(139, 92, 246, 0.35);
   }
-  @media (prefers-color-scheme: dark) {
-    .btn.primary { color: #0e1420; }
-  }
+  .btn.primary:hover { box-shadow: 0 10px 34px rgba(139, 92, 246, 0.55); }
 
   .btn.ghost {
-    background: transparent;
-    border-color: var(--line);
+    background: rgba(167, 139, 250, 0.05);
+    border-color: var(--vi-line);
     color: var(--ink-2);
   }
-  .btn.ghost:hover { border-color: var(--brand); color: var(--brand); }
+  .btn.ghost:hover { border-color: var(--vi); color: var(--ink); }
 
   .cta-facts {
     margin: 0;
@@ -117,25 +125,26 @@ import { CONTRIBUTE } from '../consts';
     flex-wrap: wrap;
     gap: 6px 18px;
     font-size: 13.4px;
-    color: var(--muted);
+    color: var(--dim);
   }
   .cta-facts li::before {
     content: "·";
     margin-right: 6px;
-    color: var(--brand);
+    color: var(--vi);
     font-weight: 800;
   }
 
   .cta-note {
     margin-top: 20px;
     padding: 14px 18px;
-    border-radius: 11px;
-    background: var(--peak-soft);
-    border: 1px solid color-mix(in srgb, var(--peak) 30%, transparent);
+    border-radius: var(--radius-sm);
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.32);
+    border-left: 4px solid #f87171;
     font-size: 14.2px;
     color: var(--ink-2);
   }
-  .cta-note strong { color: var(--peak); display: block; margin-bottom: 5px; }
+  .cta-note strong { color: #fca5a5; display: block; margin-bottom: 5px; }
   .cta-note p { margin: 0; }
   .cta-note p strong { display: inline; color: inherit; }
 

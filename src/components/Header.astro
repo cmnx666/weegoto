@@ -8,8 +8,8 @@ const isActive = (href: string) =>
 
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="/">
-      <span class="dot"></span>
+    <a class="brand" href="/" data-cursor="link">
+      <span class="orb"></span>
       <span>
         {SITE.shortTitle}
         <small>EEG · DEPRESSION</small>
@@ -18,13 +18,25 @@ const isActive = (href: string) =>
     <nav class="main">
       {
         SECTION_KEYS.map((k) => (
-          <a href={`/${k}`} aria-current={isActive(`/${k}`) ? 'page' : undefined}>
+          <a
+            href={`/${k}`}
+            data-cursor="link"
+            aria-current={isActive(`/${k}`) ? 'page' : undefined}
+          >
             {SECTIONS[k].label}
           </a>
         ))
       }
-      <a href="/about" aria-current={isActive('/about') ? 'page' : undefined}>关于</a>
-      <a href="/resources" aria-current={isActive('/resources') ? 'page' : undefined}>资源</a>
+      <a href="/about" data-cursor="link" aria-current={isActive('/about') ? 'page' : undefined}>
+        关于
+      </a>
+      <a
+        href="/resources"
+        data-cursor="link"
+        aria-current={isActive('/resources') ? 'page' : undefined}
+      >
+        资源
+      </a>
     </nav>
   </div>
 </header>

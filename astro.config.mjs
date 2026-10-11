@@ -9,6 +9,7 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [sitemap()],
   markdown: {
-    shikiConfig: { theme: 'github-light', wrap: true },
+    // V2 是深色主题，代码块必须用深色高亮，否则会出现刺眼的白块
+    shikiConfig: { theme: 'github-dark', wrap: true },
   },
 });

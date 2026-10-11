@@ -17,10 +17,12 @@ import { CONTRIBUTE, REPO } from '../consts';
   </div>
 
   <div class="actions">
-    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">
+    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener"
+       data-cursor="button" data-magnetic="0.45" data-tag="去投稿 →">
       ✍️ 开始投稿
     </a>
-    <a class="btn ghost" href={CONTRIBUTE.issuesUrl} target="_blank" rel="noopener">
+    <a class="btn ghost" href={CONTRIBUTE.issuesUrl} target="_blank" rel="noopener"
+       data-cursor="button" data-magnetic="0.45" data-tag="去看看 →">
       看看别人写了什么
     </a>
   </div>
@@ -175,7 +177,8 @@ import { CONTRIBUTE, REPO } from '../consts';
 
   <div class="foot-cta">
     <p>准备好了吗？</p>
-    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">✍️ 开始投稿</a>
+    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener"
+       data-cursor="button" data-magnetic="0.5" data-tag="去投稿 →">✍️ 开始投稿</a>
   </div>
 </BaseLayout>
 
@@ -193,18 +196,25 @@ import { CONTRIBUTE, REPO } from '../consts';
     gap: 7px;
     font-size: 15px;
     font-weight: 700;
-    padding: 10px 22px;
-    border-radius: 9px;
+    padding: 12px 26px;
+    border-radius: 999px;
     border: 1px solid transparent;
-    transition: transform 0.14s ease;
+    will-change: transform;
+    transition: box-shadow 0.18s, border-color 0.18s, color 0.18s;
   }
-  .btn:hover { text-decoration: none; transform: translateY(-1px); }
-  .btn.primary { background: var(--brand); color: #fff; }
-  @media (prefers-color-scheme: dark) {
-    .btn.primary { color: #0e1420; }
+  .btn:hover { text-decoration: none; }
+  .btn.primary {
+    background: linear-gradient(120deg, var(--vi-deep), var(--vi));
+    color: #120a24;
+    box-shadow: 0 6px 28px rgba(139, 92, 246, 0.35);
   }
-  .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-2); }
-  .btn.ghost:hover { border-color: var(--brand); color: var(--brand); }
+  .btn.primary:hover { box-shadow: 0 10px 36px rgba(139, 92, 246, 0.55); }
+  .btn.ghost {
+    background: rgba(167, 139, 250, 0.05);
+    border-color: var(--vi-line);
+    color: var(--ink-2);
+  }
+  .btn.ghost:hover { border-color: var(--vi); color: var(--ink); }
 
   /* 三步流程 */
   .steps { margin: 1.6em 0; display: grid; gap: 18px; }
@@ -212,28 +222,29 @@ import { CONTRIBUTE, REPO } from '../consts';
     display: grid;
     grid-template-columns: 38px 1fr;
     gap: 16px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
+    background: var(--panel);
+    border: 1px solid var(--vi-line);
+    border-radius: var(--radius);
     padding: 18px 20px;
-    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    will-change: transform;
   }
   .step .num {
     width: 34px; height: 34px; border-radius: 50%;
-    background: var(--brand); color: #fff;
+    background: linear-gradient(120deg, var(--vi-deep), var(--vi));
+    color: #120a24;
     display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 15px;
   }
-  @media (prefers-color-scheme: dark) {
-    .step .num { color: #0e1420; }
-  }
-  .step h3 { margin: 3px 0 8px; font-size: 17.5px; }
+  .step h3 { margin: 3px 0 8px; font-size: 17.5px; color: var(--ink); }
   .step p { margin: 0 0 8px; font-size: 15.4px; }
   .step p:last-child { margin-bottom: 0; }
   .step .tip {
     font-size: 13.8px;
-    color: var(--muted);
-    border-left: 3px solid var(--line);
+    color: var(--dim);
+    border-left: 3px solid var(--vi-line-2);
     padding-left: 12px;
   }
 
@@ -241,8 +252,10 @@ import { CONTRIBUTE, REPO } from '../consts';
     margin-top: 46px;
     padding: 26px;
     border-radius: var(--radius);
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(167, 139, 250, 0.09), var(--panel) 60%);
+    border: 1px solid var(--vi-line-2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: var(--shadow);
     text-align: center;
   }

@@ -12,7 +12,13 @@ const fmt = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 ---
 
-<a class="card" href={href}>
+<a
+  class="card"
+  href={href}
+  data-cursor="card"
+  data-magnetic="0.16"
+  data-tag="阅读 →"
+>
   <h3>{title}</h3>
   <p>{description}</p>
   <div class="meta">

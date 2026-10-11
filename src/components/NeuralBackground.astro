@@ -1,0 +1,160 @@
+---
+/**
+ * V2「突触」神经网络背景
+ * ---------------------------------------------------------------
+ * 固定铺满视口的粒子网络：节点缓慢漂移、邻近节点连成突触、
+ * 琥珀色信号光点沿连接传递（呼应 EEG 的神经冲动）。
+ *
+ * 性能与降级：
+ *   · 只用 transform / 单 rAF，不做重排
+ *   · 移动端自动减少节点数
+ *   · prefers-reduced-motion 时只画一帧静态图，不启动动画
+ */
+---
+
+<canvas id="neural-bg" aria-hidden="true"></canvas>
+
+<style>
+  #neural-bg {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* 中心稍亮、四周压暗，让内容始终清晰 */
+  .neural-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(
+      900px 480px at 50% 28%,
+      rgba(7, 5, 18, 0.12),
+      rgba(7, 5, 18, 0.55) 75%
+    );
+  }
+</style>
+
+<div class="neural-veil"></div>
+
+<script>
+  (() => {
+    const cv = document.getElementById('neural-bg') as HTMLCanvasElement | null;
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    if (!ctx) return;
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isSmall = matchMedia('(max-width: 860px)').matches;
+
+    const N = isSmall ? 34 : 70;      // 节点数
+    const LD = isSmall ? 120 : 160;   // 连接距离阈值
+    const MAX_SPARKS = isSmall ? 3 : 7;
+
+    let W = 0, H = 0, DPR = 1;
+    type Node = { x: number; y: number; vx: number; vy: number; r: number; ph: number };
+    let nodes: Node[] = [];
+    let links: [number, number, number][] = [];
+    let sparks: { a: number; b: number; p: number }[] = [];
+
+    function resize() {
+      DPR = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv!.width = W * DPR; cv!.height = H * DPR;
+      ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+
+    function init() {
+      nodes = Array.from({ length: N }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.24,
+        vy: (Math.random() - 0.5) * 0.24,
+        r: 1.6 + Math.random() * 2.2,
+        ph: Math.random() * Math.PI * 2,
+      }));
+    }
+
+    function draw(t: number) {
+      const time = t / 1000;
+      ctx!.clearRect(0, 0, W, H);
+
+      if (!reduced) {
+        for (const n of nodes) {
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < -20) n.x = W + 20;
+          if (n.x > W + 20) n.x = -20;
+          if (n.y < -20) n.y = H + 20;
+          if (n.y > H + 20) n.y = -20;
+        }
+      }
+
+      // 重建连接
+      links = [];
+      for (let i = 0; i < N; i++) {
+        for (let j = i + 1; j < N; j++) {
+          const a = nodes[i], b = nodes[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < LD) links.push([i, j, d]);
+        }
+      }
+
+      // 突触连线
+      for (const [i, j, d] of links) {
+        const a = nodes[i], b = nodes[j];
+        ctx!.beginPath();
+        ctx!.moveTo(a.x, a.y);
+        ctx!.lineTo(b.x, b.y);
+        ctx!.strokeStyle = `rgba(167,139,250,${(1 - d / LD) * 0.42})`;
+        ctx!.lineWidth = 1;
+        ctx!.stroke();
+      }
+
+      // 信号光点
+      if (!reduced && Math.random() < 0.05 && links.length && sparks.length < MAX_SPARKS) {
+        const l = links[Math.floor(Math.random() * links.length)];
+        sparks.push({ a: l[0], b: l[1], p: 0 });
+      }
+      for (const s of sparks) {
+        s.p += 0.028;
+        const a = nodes[s.a], b = nodes[s.b];
+        const x = a.x + (b.x - a.x) * s.p;
+        const y = a.y + (b.y - a.y) * s.p;
+        ctx!.beginPath();
+        ctx!.arc(x, y, 2.6, 0, 7);
+        ctx!.fillStyle = 'rgba(251,191,36,.95)';
+        ctx!.shadowColor = 'rgba(251,191,36,.9)';
+        ctx!.shadowBlur = 10;
+        ctx!.fill();
+        ctx!.shadowBlur = 0;
+      }
+      sparks = sparks.filter((s) => s.p < 1);
+
+      // 节点（呼吸式脉动）
+      for (const n of nodes) {
+        const r = n.r * (1 + 0.28 * Math.sin(time * 1.6 + n.ph));
+        ctx!.beginPath();
+        ctx!.arc(n.x, n.y, r, 0, 7);
+        ctx!.fillStyle = 'rgba(196,181,253,.85)';
+        ctx!.shadowColor = 'rgba(167,139,250,.8)';
+        ctx!.shadowBlur = 8;
+        ctx!.fill();
+        ctx!.shadowBlur = 0;
+      }
+
+      if (!reduced) requestAnimationFrame(draw);
+    }
+
+    let rt: number | undefined;
+    addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => { resize(); init(); if (reduced) draw(0); }, 160);
+    });
+
+    resize();
+    init();
+    requestAnimationFrame(draw);
+  })();
+</script>

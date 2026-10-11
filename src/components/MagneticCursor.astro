@@ -1,0 +1,267 @@
+---
+/**
+ * V2.1「选框光标」
+ * ---------------------------------------------------------------
+ * 默认一颗紫色小圆点；接触带 [data-cursor] 的元素时，四个角标从光标处
+ * 散开，沿元素圆角贴边把它框住（零间隙、自适应圆角与磁吸位移）。
+ *
+ * 用法（写在任意元素上）：
+ *   data-cursor="card"      形变为紫色选框 + 角标
+ *   data-cursor="button"    形变为琥珀色选框
+ *   data-cursor="link"      保持小圆点（不打扰导航）
+ *   data-tag="阅读 →"        选框左上角浮出的标签文案
+ *   data-magnetic="0.22"    元素被光标吸引的强度（0~0.5，可选）
+ *
+ * 降级策略（重要）：
+ *   · 触屏设备直接不启用，系统光标照常
+ *   · 只有脚本成功接管后才给 <html> 加 has-custom-cursor 来隐藏原生光标，
+ *     JS 出错时用户不会「没有光标」
+ *   · prefers-reduced-motion 下改为瞬时跟随，不做缓动
+ */
+---
+
+<svg id="wg-cursor" data-mode="default" aria-hidden="true">
+  <circle id="wg-dot" r="5" cx="-100" cy="-100"></circle>
+  <path id="wg-shape" d=""></path>
+  <path class="wg-corner" id="wg-c0" d=""></path>
+  <path class="wg-corner" id="wg-c1" d=""></path>
+  <path class="wg-corner" id="wg-c2" d=""></path>
+  <path class="wg-corner" id="wg-c3" d=""></path>
+</svg>
+<div id="wg-tag">阅读 →</div>
+
+<style>
+  /* 只有脚本接管后才隐藏原生光标 */
+  html.has-custom-cursor,
+  html.has-custom-cursor * { cursor: none !important; }
+
+  #wg-cursor {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  #wg-cursor.on { opacity: 1; }
+  #wg-cursor[data-hidden="1"] { display: none; }
+
+  #wg-dot {
+    fill: var(--vi, #a78bfa);
+    filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.75));
+    transition: opacity 0.16s;
+  }
+  #wg-cursor[data-mode="card"] #wg-dot,
+  #wg-cursor[data-mode="button"] #wg-dot { opacity: 0; }
+
+  #wg-shape {
+    fill: none;
+    stroke: var(--vi, #a78bfa);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+    transition: opacity 0.16s;
+  }
+  #wg-cursor[data-mode="card"] #wg-shape { opacity: 1; }
+  #wg-cursor[data-mode="button"] #wg-shape { opacity: 1; stroke: var(--am, #fbbf24); }
+
+  .wg-corner {
+    fill: none;
+    stroke: var(--vi, #a78bfa);
+    stroke-width: 2.4;
+    stroke-linecap: square;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+    transition: opacity 0.2s;
+    filter: drop-shadow(0 0 5px rgba(167, 139, 250, 0.55));
+  }
+  #wg-cursor[data-mode="card"] .wg-corner { opacity: 1; }
+  #wg-cursor[data-mode="button"] .wg-corner {
+    opacity: 1;
+    stroke: var(--am, #fbbf24);
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5));
+  }
+
+  #wg-tag {
+    position: fixed;
+    z-index: 101;
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-family: var(--sans, sans-serif);
+    background: var(--vi, #a78bfa);
+    color: #150b2e;
+    padding: 3px 10px;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.16s;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  }
+  #wg-tag.amber {
+    background: var(--am, #fbbf24);
+    color: #241600;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
+  }
+
+  @media (pointer: coarse) {
+    #wg-cursor, #wg-tag { display: none; }
+  }
+  @media print {
+    #wg-cursor, #wg-tag { display: none; }
+    html.has-custom-cursor, html.has-custom-cursor * { cursor: auto !important; }
+  }
+</style>
+
+<script>
+  (() => {
+    // 触屏设备：完全交给系统光标
+    if (matchMedia('(pointer: coarse)').matches) return;
+
+    const cur = document.getElementById('wg-cursor');
+    const tag = document.getElementById('wg-tag');
+    const dot = document.getElementById('wg-dot');
+    const shape = document.getElementById('wg-shape');
+    const cc = [0, 1, 2, 3].map((i) => document.getElementById('wg-c' + i));
+    if (!cur || !tag || !dot || !shape || cc.some((c) => !c)) return;
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const DOT_R = 5;   // 默认小圆半径
+    const PAD = 0;     // 零间隙：选框 = 元素精确边框
+
+    let mx = innerWidth / 2, my = innerHeight / 2;
+    let mode = 'default';
+    let target: HTMLElement | null = null;
+    let targetRadius = 0;
+    let pressed = false;
+
+    // 当前矩形 + 圆角（连续插值）→ 角标"散开"的动画就是它撑开的
+    const R = { x: mx - DOT_R, y: my - DOT_R, w: DOT_R * 2, h: DOT_R * 2, r: DOT_R };
+
+    const readRadius = (el: HTMLElement) => {
+      const cs = getComputedStyle(el);
+      return Math.max(
+        parseFloat(cs.borderTopLeftRadius) || 0,
+        parseFloat(cs.borderTopRightRadius) || 0,
+        parseFloat(cs.borderBottomRightRadius) || 0,
+        parseFloat(cs.borderBottomLeftRadius) || 0
+      );
+    };
+
+    addEventListener('mousemove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      cur.classList.add('on');
+    }, { passive: true });
+
+    addEventListener('pointerdown', () => { pressed = true; });
+    addEventListener('pointerup', () => { pressed = false; });
+    document.documentElement.addEventListener('mouseleave', () => {
+      cur.classList.remove('on'); tag.style.opacity = '0';
+    });
+    document.documentElement.addEventListener('mouseenter', () => {
+      cur.classList.add('on');
+    });
+
+    /* ---- 元素磁吸：元素被光标吸引 ---- */
+    document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => {
+      const k = parseFloat(el.dataset.magnetic || '') || 0.3;
+      el.addEventListener('pointerenter', () => {
+        el.style.transition = 'transform .12s ease-out';
+      });
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2);
+        const dy = e.clientY - (r.top + r.height / 2);
+        el.style.transform = `translate(${dx * k}px,${dy * k}px)`;
+      });
+      el.addEventListener('pointerleave', () => {
+        el.style.transition = 'transform .55s cubic-bezier(.2,.9,.25,1.35)';
+        el.style.transform = 'translate(0px,0px)';
+        setTimeout(() => { el.style.transition = ''; }, 560);
+      });
+    });
+
+    /* ---- 形变模式 ---- */
+    document.querySelectorAll<HTMLElement>('[data-cursor]').forEach((el) => {
+      el.addEventListener('pointerenter', () => {
+        target = el;
+        mode = el.dataset.cursor || 'default';
+        cur.dataset.mode = mode;
+        targetRadius = readRadius(el);
+        if (mode === 'card' || mode === 'button') {
+          tag.textContent = el.dataset.tag || '查看 →';
+          tag.classList.toggle('amber', mode === 'button');
+          tag.style.opacity = '1';
+        } else {
+          tag.style.opacity = '0';
+        }
+      });
+      el.addEventListener('pointerleave', () => {
+        target = null;
+        mode = 'default';
+        cur.dataset.mode = 'default';
+        tag.style.opacity = '0';
+      });
+    });
+
+    function frame() {
+      let tx: number, ty: number, tw: number, th: number;
+
+      if (target) {
+        const r = target.getBoundingClientRect();
+        tx = r.left - PAD; ty = r.top - PAD;
+        tw = r.width + PAD * 2; th = r.height + PAD * 2;
+      } else {
+        const s = DOT_R * 2;
+        tx = mx - s / 2; ty = my - s / 2; tw = s; th = s;
+      }
+
+      if (pressed) {
+        const k = 0.88, cx = tx + tw / 2, cy = ty + th / 2;
+        tw *= k; th *= k; tx = cx - tw / 2; ty = cy - th / 2;
+      }
+
+      const F = reduced ? 1 : (target ? 0.2 : 0.55);
+      R.x += (tx - R.x) * F; R.y += (ty - R.y) * F;
+      R.w += (tw - R.w) * F; R.h += (th - R.h) * F;
+      const tr = target ? targetRadius : DOT_R;
+      R.r += (tr - R.r) * F;
+
+      dot!.setAttribute('cx', String(R.x + R.w / 2));
+      dot!.setAttribute('cy', String(R.y + R.h / 2));
+
+      const rr = Math.max(0, Math.min(R.r, R.w / 2, R.h / 2));
+      const x = R.x, y = R.y, w = R.w, h = R.h;
+
+      shape!.setAttribute('d',
+        `M ${x + rr},${y} H ${x + w - rr} A ${rr},${rr} 0 0 1 ${x + w},${y + rr} ` +
+        `V ${y + h - rr} A ${rr},${rr} 0 0 1 ${x + w - rr},${y + h} H ${x + rr} ` +
+        `A ${rr},${rr} 0 0 1 ${x},${y + h - rr} V ${y + rr} A ${rr},${rr} 0 0 1 ${x + rr},${y} Z`);
+
+      const ext = Math.max(0, Math.min(7, Math.min(w, h) / 2 - rr));
+      cc[0]!.setAttribute('d',
+        `M ${x},${y + rr + ext} L ${x},${y + rr} A ${rr},${rr} 0 0 1 ${x + rr},${y} L ${x + rr + ext},${y}`);
+      cc[1]!.setAttribute('d',
+        `M ${x + w - rr - ext},${y} L ${x + w - rr},${y} A ${rr},${rr} 0 0 1 ${x + w},${y + rr} L ${x + w},${y + rr + ext}`);
+      cc[2]!.setAttribute('d',
+        `M ${x + w},${y + h - rr - ext} L ${x + w},${y + h - rr} A ${rr},${rr} 0 0 1 ${x + w - rr},${y + h} L ${x + w - rr - ext},${y + h}`);
+      cc[3]!.setAttribute('d',
+        `M ${x + rr - ext},${y + h} L ${x + rr},${y + h} A ${rr},${rr} 0 0 1 ${x},${y + h - rr} L ${x},${y + h - rr - ext}`);
+
+      if (target && (mode === 'card' || mode === 'button')) {
+        tag!.style.left = R.x + 'px';
+        tag!.style.top = (R.y - 30) + 'px';
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    // 脚本一切就绪，这时才隐藏原生光标
+    document.documentElement.classList.add('has-custom-cursor');
+    requestAnimationFrame(frame);
+  })();
+</script>

@@ -1,12 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1d4ed8"/>
-      <stop offset="100%" stop-color="#0d9488"/>
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
     </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g)"/>
-  <path d="M8 34 L16 34 L20 22 L26 46 L32 28 L37 38 L42 34 L56 34"
-        fill="none" stroke="#fff" stroke-width="3.4"
-        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="64" height="64" rx="16" fill="#0d0820"/>
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.55"/>
+  <!-- 脑电波形 -->
+  <path d="M8 34 L17 34 L21 21 L27 47 L33 27 L38 39 L43 34 L56 34"
+        fill="none" stroke="url(#g)" stroke-width="3.4"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <!-- 突触节点 -->
+  <circle cx="21" cy="21" r="2.4" fill="#fbbf24"/>
+  <circle cx="43" cy="34" r="2.4" fill="#fbbf24"/>
 </svg>
