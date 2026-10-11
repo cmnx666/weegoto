@@ -1,15 +1,30 @@
 # ===========================================================================
 #  发布访客投稿：Issue  →  文章  →  网站
 # ===========================================================================
-#  两种触发方式（任选其一，效果完全一样）：
+#  三种触发方式：
 #
-#   方式 A（推荐，零设置）  在 Issue 里发一条评论，内容以  /发布  开头
-#   方式 B（需先建标签）    在 Issue 上打一个名为「已采纳」的标签
+#    ① 项目组成员（OWNER / MEMBER / COLLABORATOR）用投稿表单提交
+#       → **自动发布，零等待**，不需要任何审核动作
 #
-#    ⚠️ 方式 B 需要仓库里**先存在**这个标签。GitHub 不会自动创建它，
-#       如果标签不存在，你就只能从已有标签里挑，名字对不上 → 任务被静默跳过。
-#       建标签：仓库 → Issues → Labels → New label → 名称填「已采纳」
-#       所以默认请用方式 A。
+#    ② 其他访客提交 → 项目组在 Issue 里发一条以  /发布  开头的评论
+#
+#    ③ 在 Issue 上打一个名为「已采纳」的标签（需先在仓库里创建这个标签）
+#
+#  ── 为什么外部投稿不自动发布 ──────────────────────────────────────────
+#    本仓库是公开的，任何人都能开 Issue。若无差别自动发布，相当于给全互联网
+#    开了一个直通官网的发布通道：广告、钓鱼链接、抑郁症相关的有害内容、
+#    甚至被试个人信息，都会立刻出现在站点上并被搜索引擎收录，
+#    而且会写进 git 历史（撤下来也删不干净）。
+#    项目组成员自动发布既解决了"自己人用着方便"，又不承担这个风险。
+#
+#  ── 如果你确实想让所有人都自动发布 ────────────────────────────────────
+#    把下面 jobs.publish.if 里第一段（标着「① 组内自动」的那几行）的
+#    contains(fromJSON(...), github.event.issue.author_association) 整段删掉，
+#    只留 startsWith(...) 那两行即可。改完记得同时更新 README 里的说明。
+#
+#  ── 怎么把队友加进来 ──────────────────────────────────────────────────
+#    仓库 → Settings → Collaborators → Add people（Read 权限就够）
+#    加进来的账号 author_association 会变成 COLLABORATOR，提交即自动发布。
 #
 #  触发后依次做：
 #    1. 解析 Issue 内容（并校验三项同意条款是否都勾了）
@@ -28,7 +43,7 @@ name: 发布访客投稿
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, labeled]
   issue_comment:
     types: [created]
 
@@ -39,11 +54,16 @@ permissions:
 
 jobs:
   publish:
-    # 只有项目组成员（作者/成员/协作者）的指令才生效，普通访客发 /发布 不会被采纳
     if: >-
       github.event.issue.pull_request == null &&
       (
         (github.event_name == 'issues' &&
+         github.event.action == 'opened' &&
+         startsWith(github.event.issue.title, '[投稿]') &&
+         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                  github.event.issue.author_association)) ||
+        (github.event_name == 'issues' &&
+         github.event.action == 'labeled' &&
          github.event.label.name == '已采纳') ||
         (github.event_name == 'issue_comment' &&
          startsWith(github.event.comment.body, '/发布') &&
@@ -84,7 +104,7 @@ jobs:
             echo "内容没有变化，跳过提交"
             exit 0
           fi
-          git commit -m "feat(notes): 发布访客投稿 #${{ github.event.issue.number }}"
+          git commit -m "feat(notes): 发布投稿 #${{ github.event.issue.number }}"
           git push origin main
 
       - name: 触发站点重新部署
@@ -116,7 +136,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: [
-                '🎉 **已采纳并发布**',
+                '🎉 **已发布上线**',
                 '',
                 `**${title}**`,
                 '',
@@ -124,7 +144,7 @@ jobs:
                 '',
                 '部署大约需要 1 分钟，稍等片刻即可访问。',
                 '',
-                '感谢你的分享！如果之后想修改内容，直接编辑这条 Issue，然后重新发一次 `/发布` 即可（网址不变）。',
+                '想修改内容？直接编辑这条 Issue，然后重新发一次 `/发布` 即可（网址不变）。',
               ].join('\n'),
             });
 
