@@ -193,6 +193,72 @@ draft: false
 
 > ⚠️ **改 Issue 表单的字段名时，必须同步改 `issue-to-post.mjs` 里的 `FIELDS`** —— 脚本靠字段标签来解析内容。
 
+---
+
+## 二·再补、V2「突触」设计系统
+
+全站视觉是一套叫 **V2 突触** 的设计语言：深紫夜空底 + 神经网络粒子 + 玻璃拟态卡片 + 单一紫色主调 + 琥珀色强调。
+
+### 改配色 / 圆角 / 间距，只改一个文件
+
+**`src/styles/global.css` 顶部的 `:root`** 是所有设计变量的唯一来源：
+
+| 变量 | 用途 |
+|---|---|
+| `--bg` / `--bg-2` | 页面底色（深紫夜空） |
+| `--ink` / `--ink-2` / `--dim` | 文字三级灰阶 |
+| `--vi` / `--vi-deep` / `--vi-soft` / `--vi-line` | 主色紫（含浅底、描边） |
+| `--am` / `--am-soft` | 强调色琥珀 —— **只用于「当前状态」和信号光点，别扩大使用** |
+| `--panel` / `--panel-2` | 玻璃面板底色 |
+| `--radius` / `--radius-sm` | 圆角 |
+| `--maxw` | 内容最大宽度 |
+
+> ⚠️ **不要再使用旧版的 `--brand` / `--surface` / `--muted` / `--peak` 等变量名**，它们在 V2 里已被移除。
+> 组件私有样式请用上面这套变量。
+
+### 两个全局组件
+
+| 组件 | 作用 |
+|---|---|
+| `src/components/NeuralBackground.astro` | 全屏固定的神经网络粒子背景（节点漂移、突触连线、琥珀信号光点） |
+| `src/components/MagneticCursor.astro` | V2.1 选框光标（默认小圆点，接触元素时角标散开、沿圆角贴边框选） |
+
+两者都在 `src/layouts/BaseLayout.astro` 里挂载，**所有页面自动生效**。
+
+### 怎么给一个元素加上光标效果
+
+在任意元素上加这几个属性即可，不需要改 JS：
+
+```html
+<a class="card"
+   data-cursor="card"        <!-- card=紫色选框 / button=琥珀选框 / link=只显示小圆点 -->
+   data-magnetic="0.16"      <!-- 被光标吸引的强度，0~0.5，越大越黏 -->
+   data-tag="阅读 →">         <!-- 选框左上角浮出的标签文案 -->
+  ...
+</a>
+```
+
+### 降级策略（都是刻意做的，别删）
+
+| 场景 | 行为 |
+|---|---|
+| 触屏设备（`pointer: coarse`） | 完全不启用自定义光标，系统光标照常 |
+| JS 执行失败 | 原生光标**不会**被隐藏（只在脚本成功后才加 `has-custom-cursor` 类） |
+| 系统开启「减少动态」 | 粒子背景只画一帧静态图；光标改为瞬时跟随，不做缓动 |
+| 键盘操作（Tab） | `:focus-visible` 有琥珀色焦点环 —— 因为自定义光标隐藏了指针，键盘可达性必须补上 |
+| 打印 | 光标与标签自动隐藏，原生光标恢复 |
+
+### 代码高亮
+
+深色底必须配深色代码主题，已在 `astro.config.mjs` 里设成 `github-dark`：
+
+```js
+markdown: { shikiConfig: { theme: 'github-dark', wrap: true } }
+```
+
+> ⚠️ **别改回 `github-light`** —— 会在深紫底上出现刺眼的白块。
+
+
 > ⚠️ **本地开发时删过文章的话**，要清掉内容层缓存再构建，否则会报
 > `Rolldown failed to resolve import ... content-layer-deferred-module`：
 > ```powershell
