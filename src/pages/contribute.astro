@@ -1,0 +1,251 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CONTRIBUTE, REPO } from '../consts';
+---
+
+<BaseLayout
+  title="投稿指南"
+  description="「心得分享」栏目向所有访客开放投稿：可以写什么、怎么提交、审核流程，以及我们绝对不能发布的内容。"
+>
+  <div class="section-head">
+    <div class="en">Contribute</div>
+    <h1>投稿指南</h1>
+    <p>
+      「心得分享」不是项目组的自留地。任何访客都可以在这里写点东西 ——
+      只要内容和脑电、抑郁症识别、科研方法或工具实践有关。
+    </p>
+  </div>
+
+  <div class="actions">
+    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">
+      ✍️ 开始投稿
+    </a>
+    <a class="btn ghost" href={CONTRIBUTE.issuesUrl} target="_blank" rel="noopener">
+      看看别人写了什么
+    </a>
+  </div>
+
+  <div class="prose">
+    <h2>为什么开放投稿</h2>
+    <p>
+      我们做这个项目的过程中，最值钱的收获往往来自别人的踩坑记录 ——
+      那些「文档里没写、但会让你白白折腾两天」的细节。
+      所以这个栏目不想只记录我们自己的心得。
+    </p>
+    <p>
+      顺带说一句：本站是纯静态站点，没有数据库也没有服务端，
+      所以投稿走的是 GitHub 表单，内容以 Markdown 文件的形式存进仓库，再由 GitHub Actions 自动发布。
+      <strong>这意味着每一次发布都有完整的版本记录，你也可以随时看到自己的文章是怎么被处理的。</strong>
+    </p>
+
+    <h2>可以写什么</h2>
+    <ul>
+      <li><strong>论文阅读笔记</strong> —— 你读到的一篇 EEG / 抑郁症 / 时序模型论文，讲了什么、你觉得哪里有问题</li>
+      <li><strong>方法学思考</strong> —— 交叉验证怎么做才不泄露、类别不平衡怎么处理、批次效应怎么检验</li>
+      <li><strong>工具踩坑</strong> —— MNE、PyPREP、scikit-learn、Mamba 环境配置…… 任何让你卡住过的坑</li>
+      <li><strong>复现记录</strong> —— 你复现某篇论文或某个公开数据集时遇到的实际情况，尤其是对不上的地方</li>
+      <li><strong>对本站内容的质疑</strong> —— 如果你觉得我们的方法或结论有问题，非常欢迎写出来。我们更希望被指出错误，而不是被客气地忽略</li>
+    </ul>
+
+    <div class="callout">
+      <strong>篇幅不用长</strong>
+      五百字讲清一个具体的坑，比三千字的泛泛综述有用得多。宁可小而实。
+    </div>
+
+    <h2>怎么投稿（三步）</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <h3>点「开始投稿」，填写表单</h3>
+          <p>
+            会打开一个 GitHub 表单，需要填：标题、署名、摘要、正文。
+            正文支持完整的 Markdown（标题、列表、表格、代码块、公式都能用），
+            你可以先在本地写好再整段粘进去。
+          </p>
+          <p class="tip">需要 GitHub 账号。如果没有，可以发邮件给项目组，我们代为提交。</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <h3>项目组审核</h3>
+          <p>
+            提交后你的内容会变成一条公开的 Issue，任何人都能看到。
+            项目组会检查内容是否合规（主要是下面那条红线），通常 1–3 天内处理。
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div>
+          <h3>自动发布上线</h3>
+          <p>
+            审核通过后，项目组在 Issue 上打一个 <code>已采纳</code> 标签，
+            机器人会自动把你的内容转成网站文章并重新构建站点，大约 1 分钟后就能访问。
+            <strong>你会在 Issue 里收到一条回复，里面带着文章的正式网址。</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h2>署名与版权</h2>
+    <ul>
+      <li><strong>署名随便你</strong> —— 真实姓名、昵称、GitHub ID 都可以；留空则显示为「匿名访客」</li>
+      <li><strong>版权归你</strong> —— 文章著作权仍属于你本人，本站只是获得展示授权</li>
+      <li><strong>共享协议</strong> —— 发布后内容以 <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="noopener">CC BY 4.0</a> 协议共享，他人可自由转载（注明出处即可）</li>
+      <li><strong>想撤下</strong> —— 随时在 Issue 里说一声，我们会删除文章</li>
+    </ul>
+
+    <h2>⚠️ 绝对不要写的内容</h2>
+
+    <div class="callout danger">
+      <strong>这是红线，没有例外</strong>
+      <p>
+        这是一个和抑郁症相关的项目，读者里可能有患者或患者家属。
+        <strong>请绝对不要在投稿里包含任何个人的医疗信息</strong>，包括但不限于：
+      </p>
+      <ul>
+        <li>任何人的诊断结果、病情描述、用药情况、就医记录</li>
+        <li>任何人的量表分数（PHQ-9、HAMD、BDI 等）</li>
+        <li>任何可识别到具体个人的信息：姓名、出生日期、住院号、联系方式</li>
+        <li>任何未公开的、含个人信息的原始数据或截图</li>
+        <li>即使是你自己的情况，也请谨慎 —— 一旦发布，它会进入搜索引擎缓存，我们无法保证彻底删除</li>
+      </ul>
+      <p>
+        如果你是想分享自己的经历来帮助别人，我们非常理解，也很尊重 ——
+        但请换一个方式：写成<strong>不指向任何具体个人</strong>的观察或建议，或者联系我们私下聊。
+      </p>
+    </div>
+
+    <div class="callout warn">
+      <strong>另外几件也请不要做</strong>
+      <ul>
+        <li>不要写「我们的系统能诊断抑郁症」这类表述 —— 任何模型都不能替代临床诊断</li>
+        <li>不要提交未获授权的他人内容（转载需注明来源，长段落引用请先取得许可）</li>
+        <li>不要发布含有被试原始数据的图表（只发聚合统计结果是安全的）</li>
+        <li>不要夹带广告、推广链接或与主题无关的内容</li>
+      </ul>
+    </div>
+
+    <h2>我们会怎么处理不合规的投稿</h2>
+    <p>
+      如果投稿触碰了红线，我们会关闭那条 Issue 并说明原因，<strong>内容不会被发布</strong>。
+      如果不涉及隐私、只是需要调整，我们会直接在 Issue 里给你修改建议，改好后再发布。
+    </p>
+
+    <h2>常见问题</h2>
+
+    <h3>没有 GitHub 账号怎么办？</h3>
+    <p>
+      可以联系项目组代为提交（在 <a href={REPO.url} target="_blank" rel="noopener">仓库</a> 里开一条 Issue 说明情况，
+      或者通过「关于我们」页面的联系方式找我们）。署名仍然是你。
+    </p>
+
+    <h3>发出来之后还能改吗？</h3>
+    <p>
+      可以。直接编辑那条 Issue 的内容，然后告诉项目组重新打一次 <code>已采纳</code> 标签，
+      文章会自动更新（网址不变）。
+    </p>
+
+    <h3>可以只写一小段吗？</h3>
+    <p>
+      可以。没有最短篇幅要求，只要把一件事说清楚就行。
+    </p>
+
+    <h3>你们会修改我的文字吗？</h3>
+    <p>
+      一般不会。只在明显的错别字、格式问题或触碰红线时才会提出来跟你商量，
+      <strong>不会在未经同意的情况下改动你的观点</strong>。
+    </p>
+
+    <h3>为什么投稿一定要走 GitHub？</h3>
+    <p>
+      因为本站是纯静态站点，没有服务器可以接收表单提交。用 GitHub Issue 当投稿箱的好处是：
+      零成本、全过程公开可追溯、审核环节天然存在，而且投稿记录不会丢。
+    </p>
+  </div>
+
+  <div class="foot-cta">
+    <p>准备好了吗？</p>
+    <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">✍️ 开始投稿</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 34px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    transition: transform 0.14s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn.primary { background: var(--brand); color: #fff; }
+  @media (prefers-color-scheme: dark) {
+    .btn.primary { color: #0e1420; }
+  }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-2); }
+  .btn.ghost:hover { border-color: var(--brand); color: var(--brand); }
+
+  /* 三步流程 */
+  .steps { margin: 1.6em 0; display: grid; gap: 18px; }
+  .step {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .step .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--brand); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .step .num { color: #0e1420; }
+  }
+  .step h3 { margin: 3px 0 8px; font-size: 17.5px; }
+  .step p { margin: 0 0 8px; font-size: 15.4px; }
+  .step p:last-child { margin-bottom: 0; }
+  .step .tip {
+    font-size: 13.8px;
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    padding-left: 12px;
+  }
+
+  .foot-cta {
+    margin-top: 46px;
+    padding: 26px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .foot-cta p { margin: 0 0 14px; color: var(--ink-2); font-weight: 700; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; gap: 10px; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>

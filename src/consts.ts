@@ -7,7 +7,27 @@ export const SITE = {
   author: 'weegoto 项目组',
   // 联系方式（可留空，留空则不显示）
   email: '',
-  github: 'https://github.com/',
+  github: 'https://github.com/cmnx666/weegoto',
+} as const;
+
+// 仓库信息 —— 访客投稿功能靠它拼出 Issue 链接
+export const REPO = {
+  owner: 'cmnx666',
+  name: 'weegoto',
+  slug: 'cmnx666/weegoto',
+  url: 'https://github.com/cmnx666/weegoto',
+} as const;
+
+// 访客投稿配置
+export const CONTRIBUTE = {
+  // 在 Issue 上打上这个标签，机器人就会把 Issue 转成文章并发布
+  acceptLabel: '已采纳',
+  // 投稿入口：打开预填好的 Issue 表单（模板文件名必须与 .github/ISSUE_TEMPLATE/ 下一致）
+  submitUrl: `${REPO.url}/issues/new?template=submit-note.yml&title=${encodeURIComponent('[投稿] ')}`,
+  // 查看所有投稿与进度
+  issuesUrl: `${REPO.url}/issues`,
+  // 投稿指南页
+  guideUrl: '/contribute',
 } as const;
 
 // 三个内容栏目的元信息：路径、中文名、一句话说明
@@ -25,7 +45,8 @@ export const SECTIONS = {
   notes: {
     label: '心得分享',
     en: 'Notes',
-    description: '论文阅读笔记、方法学思考、工具踩坑 —— 我们学到了什么。',
+    description:
+      '论文阅读笔记、方法学思考、工具踩坑 —— 我们学到了什么。本栏目向所有访客开放投稿。',
   },
 } as const;
 

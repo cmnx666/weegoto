@@ -1,0 +1,99 @@
+# ===========================================================================
+#  访客投稿表单
+# ===========================================================================
+#  访客在网站上点「我要投稿」，就会打开这个表单。
+#  提交后会变成一个 GitHub Issue；项目组打上「已采纳」标签后，
+#  .github/workflows/publish-submission.yml 会自动把它转成文章并发布。
+#
+#  ⚠️ 表单里每个字段的 label 会被机器人当作解析依据，
+#     改动 label 时必须同步改 .github/scripts/issue-to-post.mjs。
+# ===========================================================================
+
+name: 投稿心得
+description: 向「心得分享」栏目投稿 —— 经项目组审核后发布到网站上
+title: "[投稿] "
+labels: ["投稿"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你愿意分享！**提交后不会立刻出现在网站上**，需要项目组审核通过。
+
+        写之前请先看一眼 [投稿指南](https://weegoto.top/contribute)，里面写了选题范围和我们**绝对不能发布**的内容。
+
+        ---
+
+  - type: input
+    id: title
+    attributes:
+      label: 文章标题
+      description: 一句话说清这篇写了什么，会显示在列表和搜索结果里
+      placeholder: 例如：我第一次跑 ICA 时踩的三个坑
+    validations:
+      required: true
+
+  - type: input
+    id: author
+    attributes:
+      label: 署名
+      description: 想用什么名字署名？留空则显示为「匿名访客」。也可以填真实姓名、昵称或 GitHub ID
+      placeholder: 例如：张三 / zhangsan / 匿名访客
+    validations:
+      required: false
+
+  - type: input
+    id: slug
+    attributes:
+      label: 链接短名（选填）
+      description: 文章的网址会用这个词，只能用英文小写字母、数字和连字符。留空则自动用投稿编号
+      placeholder: 例如：my-first-ica
+    validations:
+      required: false
+
+  - type: input
+    id: tags
+    attributes:
+      label: 标签（选填）
+      description: 用英文逗号分隔，2–4 个最好。注意：标签里不要再写逗号
+      placeholder: 例如：MNE, 预处理, 踩坑
+    validations:
+      required: false
+
+  - type: input
+    id: summary
+    attributes:
+      label: 一句话摘要
+      description: 会显示在文章卡片上，50 字以内最佳
+      placeholder: 例如：记录三个不会报错、但会让结果悄悄变错的用法。
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: 正文
+      description: 支持 Markdown（标题、列表、表格、代码块、公式都可以）。可以直接把写好的内容粘进来
+      render: markdown
+      placeholder: |
+        ## 先说结论
+
+        正文从这里开始……
+
+        ```python
+        # 代码块这样写
+        ```
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 发布前确认（三项都必须勾选）
+      options:
+        - label: 我同意本文以 **CC BY 4.0** 协议发布，允许他人转载（注明出处即可）
+          required: true
+        - label: 我确认本文**不包含任何个人的医疗信息**（诊断、用药、就医记录、量表分数等），也不包含任何可识别到具体个人的数据
+          required: true
+        - label: 我确认内容为**本人原创**，或已获得原作者授权；引用他人内容时已注明来源
+          required: true

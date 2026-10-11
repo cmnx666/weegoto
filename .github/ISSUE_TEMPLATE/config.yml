@@ -1,0 +1,10 @@
+# 投稿入口的说明与引导
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📖 先读投稿指南
+    url: https://weegoto.top/contribute
+    about: 选题范围、格式要求，以及我们绝对不能发布的内容（重要）
+  - name: 💬 只是想留个言 / 提个建议
+    url: https://github.com/cmnx666/weegoto/issues
+    about: 查看已有的投稿与讨论

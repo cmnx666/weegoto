@@ -1,5 +1,5 @@
 ---
-import { SITE } from '../consts';
+import { SITE, CONTRIBUTE } from '../consts';
 const year = new Date().getFullYear();
 ---
 
@@ -9,9 +9,11 @@ const year = new Date().getFullYear();
       © {year} {SITE.author} · 本站只发布<b>聚合统计结果</b>，不包含任何被试的原始数据或个人信息。
     </div>
     <div style="margin-top:8px">
+      <a href={CONTRIBUTE.guideUrl}>投稿心得</a> ·
       <a href="/rss.xml">RSS</a> ·
       <a href="/sitemap-index.xml">站点地图</a>
       {SITE.github && SITE.github !== 'https://github.com/' && <> · <a href={SITE.github}>代码仓库</a></>}
+      {SITE.email && <> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></>}
     </div>
     <div style="margin-top:8px">
       数据集来源：HUSM_EEG（公开发表，使用请遵守其原始许可）

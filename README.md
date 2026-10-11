@@ -99,6 +99,62 @@ draft: false
 
 ---
 
+## 二·补、访客投稿：审核后自动发布
+
+「心得分享」栏目**对外开放投稿** —— 任何访客都能写，不限于项目组成员。
+
+### 它是怎么运转的
+
+```
+访客在网站上点「我要投稿」
+   ↓ 打开预填好的 GitHub Issue 表单（.github/ISSUE_TEMPLATE/submit-note.yml）
+   ↓ 填写标题 / 署名 / 摘要 / 正文，勾选三项同意条款
+   ↓ 提交 → 变成一条公开 Issue
+你在 Issue 上打一个「已采纳」标签          ← 人工审核就在这一步
+   ↓ .github/workflows/publish-submission.yml 被触发
+   ↓ 解析 Issue、校验同意条款、生成 src/content/notes/<slug>.md
+   ↓ 提交并推送，然后主动触发 deploy.yml（因为 GITHUB_TOKEN 的推送不会自动触发其它工作流）
+   ↓ 1 分钟后文章上线，机器人回到 Issue 里回复网址
+```
+
+### 你要做的只有一个动作
+
+**在 Issue 上打「已采纳」标签。** 剩下的全自动。
+
+如果内容有问题（比如同意条款没勾全），工作流会失败并**自动在 Issue 里回帖说明原因**，不会发布。
+
+### 想改一篇已发布的投稿
+
+让作者直接编辑那条 Issue（或者你自己改），然后**去掉「已采纳」标签再重新打一次**，文章会自动更新，网址不变。
+
+### 想撤下一篇投稿
+
+直接删掉 `src/content/notes/<slug>.md` 并推送即可。
+
+### 相关文件
+
+| 文件 | 作用 |
+|---|---|
+| `.github/ISSUE_TEMPLATE/submit-note.yml` | 访客看到的投稿表单 |
+| `.github/ISSUE_TEMPLATE/config.yml` | 表单入口的引导与说明 |
+| `.github/scripts/issue-to-post.mjs` | 把 Issue 解析成文章的脚本 |
+| `.github/workflows/publish-submission.yml` | 打标签后触发的自动化流程 |
+| `src/pages/contribute.astro` | 站内的《投稿指南》页面 |
+| `src/components/ContributeCTA.astro` | 心得分享页顶部的投稿入口 |
+| `src/consts.ts` 的 `CONTRIBUTE` | 投稿相关的链接配置 |
+
+> ⚠️ **改 Issue 表单的字段名时，必须同步改 `issue-to-post.mjs` 里的 `FIELDS`** —— 脚本靠字段标签来解析内容。
+
+> ⚠️ **本地开发时删过文章的话**，要清掉内容层缓存再构建，否则会报
+> `Rolldown failed to resolve import ... content-layer-deferred-module`：
+> ```powershell
+> Remove-Item .astro,node_modules\.astro,dist -Recurse -Force
+> npm run build
+> ```
+> （CI 每次是全新检出，不会遇到这个问题）
+
+---
+
 ## 三、要改的地方（就这几处）
 
 | 想改什么 | 改哪里 |

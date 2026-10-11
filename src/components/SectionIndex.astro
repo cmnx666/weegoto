@@ -23,6 +23,9 @@ const posts = (await getCollection(section, ({ data }) => !data.draft)).sort(
     <p>{meta.description}</p>
   </div>
 
+  {/* 可选插槽：栏目特有的提示区（例如「心得分享」的投稿入口） */}
+  {Astro.slots.has('cta') && <slot name="cta" />}
+
   {
     posts.length === 0 ? (
       <div class="empty">

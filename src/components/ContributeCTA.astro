@@ -1,0 +1,146 @@
+---
+// 「心得分享」栏目顶部的投稿入口
+import { CONTRIBUTE } from '../consts';
+---
+
+<section class="contribute-cta">
+  <div class="cta-main">
+    <span class="badge">开放投稿</span>
+    <h2>这个栏目，欢迎所有人来写</h2>
+    <p>
+      不限于项目组成员 —— 任何访客都可以在这里分享论文笔记、方法学思考、工具踩坑，
+      或者你对脑电与抑郁症这个话题的任何观察。经项目组审核后发布。
+    </p>
+    <div class="cta-actions">
+      <a class="btn primary" href={CONTRIBUTE.submitUrl} target="_blank" rel="noopener">
+        ✍️ 我要投稿
+      </a>
+      <a class="btn ghost" href={CONTRIBUTE.guideUrl}>先看投稿指南</a>
+    </div>
+    <ul class="cta-facts">
+      <li>需要 GitHub 账号（投稿走 GitHub 表单）</li>
+      <li>人工审核后发布，通常 1–3 天</li>
+      <li>署名可以自定义，也可以匿名</li>
+      <li>内容以 CC BY 4.0 协议共享</li>
+    </ul>
+  </div>
+
+  <div class="cta-note">
+    <strong>⚠️ 有一条红线</strong>
+    <p>
+      请<strong>不要</strong>在投稿里写任何个人的医疗信息 —— 诊断、用药、就医记录、量表分数，
+      以及任何可识别到具体个人的数据。一旦发布，内容会被搜索引擎收录且无法彻底撤回。
+    </p>
+  </div>
+</section>
+
+<style>
+  .contribute-cta {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand) 7%, var(--surface)),
+      var(--surface)
+    );
+    border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line));
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--brand);
+    background: var(--brand-soft);
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    border-radius: 999px;
+    padding: 3px 12px;
+    margin-bottom: 12px;
+  }
+
+  .cta-main h2 {
+    margin: 0 0 10px;
+    font-size: clamp(20px, 2.8vw, 25px);
+    letter-spacing: -0.015em;
+  }
+
+  .cta-main > p {
+    margin: 0 0 18px;
+    color: var(--ink-2);
+    font-size: 15.4px;
+    max-width: 680px;
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14.6px;
+    font-weight: 700;
+    padding: 9px 20px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    transition: transform 0.14s ease, opacity 0.14s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+  .btn.primary {
+    background: var(--brand);
+    color: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    .btn.primary { color: #0e1420; }
+  }
+
+  .btn.ghost {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--ink-2);
+  }
+  .btn.ghost:hover { border-color: var(--brand); color: var(--brand); }
+
+  .cta-facts {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 13.4px;
+    color: var(--muted);
+  }
+  .cta-facts li::before {
+    content: "·";
+    margin-right: 6px;
+    color: var(--brand);
+    font-weight: 800;
+  }
+
+  .cta-note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    border-radius: 11px;
+    background: var(--peak-soft);
+    border: 1px solid color-mix(in srgb, var(--peak) 30%, transparent);
+    font-size: 14.2px;
+    color: var(--ink-2);
+  }
+  .cta-note strong { color: var(--peak); display: block; margin-bottom: 5px; }
+  .cta-note p { margin: 0; }
+  .cta-note p strong { display: inline; color: inherit; }
+
+  @media (max-width: 640px) {
+    .contribute-cta { padding: 20px; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>

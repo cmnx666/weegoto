@@ -1,0 +1,132 @@
+# ===========================================================================
+#  发布访客投稿：Issue  →  文章  →  网站
+# ===========================================================================
+#  项目组在一条「投稿心得」Issue 上打上「已采纳」标签，这个工作流就会：
+#    1. 解析 Issue 内容（并校验三项同意条款是否都勾了）
+#    2. 生成 src/content/notes/<slug>.md
+#    3. 提交并推送到 main
+#    4. 主动触发 deploy.yml（见下方说明）
+#    5. 回到 Issue 里回复「已上线」和文章网址
+#
+#  ⚠️ 为什么第 4 步必须显式触发？
+#     用默认的 GITHUB_TOKEN 推送的提交，**不会**触发其它 on: push 工作流
+#     （GitHub 防止无限循环的机制）。所以 deploy.yml 不会自己跑，
+#     必须用 workflow_dispatch 显式叫醒它。
+# ===========================================================================
+
+name: 发布访客投稿
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+jobs:
+  publish:
+    # 只有打上「已采纳」标签才发布 —— 这是人工审核环节
+    if: github.event.label.name == '已采纳'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Issue 转成文章
+        id: gen
+        continue-on-error: true
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_LOGIN: ${{ github.event.issue.user.login }}
+        run: node .github/scripts/issue-to-post.mjs
+
+      - name: 提交并推送
+        if: steps.gen.outcome == 'success'
+        run: |
+          set -e
+          git config user.name  "weegoto-bot"
+          git config user.email "weegoto-bot@users.noreply.github.com"
+          git add src/content/notes
+          if git diff --cached --quiet; then
+            echo "内容没有变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "feat(notes): 发布访客投稿 #${{ github.event.issue.number }}"
+          git push origin main
+
+      - name: 触发站点重新部署
+        if: steps.gen.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+            });
+            core.info('已触发 deploy.yml');
+
+      - name: 回帖：发布成功
+        if: steps.gen.outcome == 'success'
+        uses: actions/github-script@v7
+        env:
+          POST_SLUG: ${{ steps.gen.outputs.slug }}
+          POST_TITLE: ${{ steps.gen.outputs.title }}
+        with:
+          script: |
+            const slug = process.env.POST_SLUG;
+            const title = process.env.POST_TITLE;
+            const url = `https://weegoto.top/notes/${slug}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '🎉 **已采纳并发布**',
+                '',
+                `**${title}**`,
+                '',
+                `🔗 ${url}`,
+                '',
+                '部署大约需要 1 分钟，稍等片刻即可访问。',
+                '',
+                '感谢你的分享！如果之后想修改内容，直接编辑这条 Issue 后重新打一次 `已采纳` 标签即可。',
+              ].join('\n'),
+            });
+
+      - name: 回帖：发布失败
+        if: steps.gen.outcome != 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '⚠️ **自动发布失败**',
+                '',
+                '最常见的原因：',
+                '',
+                '1. **三项同意条款没有全部勾选** —— 这是发布的必要条件',
+                '2. 必填字段（文章标题 / 一句话摘要 / 正文）为空',
+                '3. 链接短名与已有文章重名',
+                '',
+                '请检查后修正内容，然后去掉 `已采纳` 标签再重新打上一次。',
+                '',
+                `详细报错见 [Actions 日志](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/publish-submission.yml)。`,
+              ].join('\n'),
+            });
