@@ -54,12 +54,17 @@ permissions:
 
 jobs:
   publish:
+    # ⚠️ 判断"这是不是一条投稿"必须看**正文里的表单字段标记**，不能看标题 ——
+    #    表单的默认标题是 "[投稿] "，但用户很容易把它改掉（例如改成 "test1"），
+    #    那样标题前缀判断就会失败，任务被静默跳过（记录里只显示 Skipped）。
+    #    "### 文章标题" 是 Issue Form 自动生成的、用户改不掉，可靠得多。
     if: >-
       github.event.issue.pull_request == null &&
       (
         (github.event_name == 'issues' &&
          github.event.action == 'opened' &&
-         startsWith(github.event.issue.title, '[投稿]') &&
+         github.event.issue.body != null &&
+         contains(github.event.issue.body, '### 文章标题') &&
          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
                   github.event.issue.author_association)) ||
         (github.event_name == 'issues' &&
