@@ -9,9 +9,11 @@ import { SITE } from '../consts';
 interface Props {
   title?: string;
   description?: string;
+  /** 裸布局：不渲染 Header / Footer，也不套 .container（供全屏页面使用） */
+  bare?: boolean;
 }
 
-const { title, description = SITE.description } = Astro.props;
+const { title, description = SITE.description, bare = false } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.shortTitle}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com').href;
 ---
@@ -36,19 +38,29 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
 
     <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
   </head>
-  <body>
-    <!-- V2 神经网络粒子背景（固定层，z-index:0） -->
-    <NeuralBackground />
+  <body class={bare ? 'bare' : undefined}>
+    {
+      /* 全屏页自带神经网络画布，不再叠加全局背景层，避免两层 canvas 重复绘制 */
+      !bare && <NeuralBackground />
+    }
 
     <!-- V2.1 选框光标（固定层，z-index:100） -->
     <MagneticCursor />
 
-    <Header />
-    <main>
-      <div class="container">
+    {
+      bare ? (
         <slot />
-      </div>
-    </main>
-    <Footer />
+      ) : (
+        <>
+          <Header />
+          <main>
+            <div class="container">
+              <slot />
+            </div>
+          </main>
+          <Footer />
+        </>
+      )
+    }
   </body>
 </html>

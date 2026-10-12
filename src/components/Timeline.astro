@@ -1,0 +1,1068 @@
+---
+/**
+ * 全屏光谱时间线 —— 主页唯一内容
+ *
+ * 结构：
+ *   ① 左上角：品牌 + 跳转其他页面的按钮
+ *   ② 右上角：迷你全景图
+ *   ③ 中央：电磁波谱式扫频波形（低频=简单模型 → 高频=复杂模型）
+ *   ④ 波形上：8 个世代大节点（吸附在波峰/波谷）+ 19 个知识图谱小节点
+ *   ⑤ 下方/上方：当前世代的简介卡（随峰谷翻面）
+ *   ⑥ 点节点：全屏详情页（滚轮 fullpage 式切换）
+ *
+ * 知识图谱小节点默认与背景神经网络小点逐参数一致（完全隐形），
+ * 只有鼠标移到大节点上才显现标签与连线。
+ *
+ * 样式全部以 #tl 为前缀，避免与 global.css 的 .card/.brand/.container 冲突。
+ */
+import { SECTIONS, SECTION_KEYS } from '../consts';
+
+const NAV = [
+  ...SECTION_KEYS.map((k) => ({ href: `/${k}`, label: SECTIONS[k].label })),
+  { href: '/resources', label: '资源' },
+  { href: '/about', label: '关于' },
+];
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<div id="tl">
+  <canvas id="net"></canvas>
+  <div class="veil"></div>
+
+  <!-- ① 顶栏：左上角导航 + 右上角迷你全景 -->
+  <div class="topbar">
+    <div class="tl-left">
+      <a class="brand" href="/" data-cursor="link" aria-current={isActive('/') ? 'page' : undefined}>
+        <span class="orb"></span>
+        <span>weegoto<small>EEG · DEPRESSION</small></span>
+      </a>
+      <nav class="mainnav">
+        {
+          NAV.map((n) => (
+            <a
+              href={n.href}
+              data-cursor="link"
+              aria-current={isActive(n.href) ? 'page' : undefined}
+            >
+              {n.label}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+    <div class="mm-box">
+      <span class="mm-cap">全景 · 光点位置</span>
+      <svg id="minimap" viewBox="0 0 424 44" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <!-- 图例 -->
+  <div class="legend">
+    <div class="t">图例 · LEGEND</div>
+    <div class="row"><span class="sw big"></span>世代节点（8）</div>
+    <div class="row"><span class="sw rep"></span>实验报告</div>
+    <div class="row"><span class="sw note"></span>心得分享</div>
+    <div class="row"><span class="sw line"></span>隶属连线</div>
+    <div class="hint">悬停大节点 → 显现其知识图谱</div>
+    <div class="hint2">频率越高 · 模型越复杂 →</div>
+  </div>
+
+  <!-- ③④ 主舞台 -->
+  <svg id="stage" viewBox="0 0 1400 760" preserveAspectRatio="xMidYMid slice" aria-label="模型演进谱系"></svg>
+
+  <!-- ⑤ 简介卡 -->
+  <div class="card-wrap" id="cardWrap">
+    <div class="card" id="card">
+      <div class="accent" id="c-accent"></div>
+      <div class="genrow">
+        <span class="gen" id="c-gen">GEN 1</span>
+        <h2 id="c-name">SVM</h2>
+        <span class="cn" id="c-cn">支持向量机</span>
+      </div>
+      <p class="one" id="c-one"></p>
+      <div class="body" id="c-body"></div>
+      <div class="kgline">
+        <span class="lbl">知识图谱</span>
+        <span id="c-kg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部控制 -->
+  <div class="controls">
+    <div class="scrollhint"><span class="wheel"></span>滚轮 → 沿光谱前进</div>
+    <div class="pageinfo">GEN <b id="pg">1</b> / 8</div>
+    <div class="navbtns">
+      <button class="nbtn prev" id="prev">‹ 上一页</button>
+      <button class="nbtn next" id="next">下一页 ›</button>
+    </div>
+  </div>
+
+  <!-- ⑥ 全屏详情 -->
+  <div class="detail" id="detail">
+    <div class="d-top">
+      <span class="lab">DETAIL · <b id="d-pg">GEN 1 / 8</b></span>
+      <span class="nav">
+        <button class="d-arrow" id="d-prev" title="上一代">‹</button>
+        <button class="d-arrow" id="d-next" title="下一代">›</button>
+        <button class="d-close" id="d-close" title="关闭 (Esc)">✕</button>
+      </span>
+    </div>
+    <div class="d-view">
+      <div class="d-body" id="d-body">
+        <div class="d-card">
+          <div class="accent" id="d-accent"></div>
+          <aside class="d-rail">
+            <div class="d-big" id="d-big">G1</div>
+            <div class="d-band" id="d-band">δ · 低频起步</div>
+            <div class="d-railtags" id="d-railtags"></div>
+          </aside>
+          <div class="d-content">
+            <header class="d-head">
+              <span class="gen" id="d-gen">GEN 1</span>
+              <h2 id="d-name">SVM</h2>
+              <span class="cn" id="d-cn">支持向量机</span>
+            </header>
+            <p class="d-one" id="d-one"></p>
+            <div class="d-cols">
+              <section class="d-panel gain"><h4>解决了上一代的什么</h4><p id="d-gain"></p></section>
+              <section class="d-panel cost"><h4>留下了什么新问题</h4><p id="d-cost"></p></section>
+            </div>
+            <section class="d-panel eeg"><h4>在我们的 EEG 项目里</h4><p id="d-eeg"></p></section>
+            <section class="d-kg">
+              <h4>相关知识图谱 <span class="cnt" id="d-kgcnt"></span></h4>
+              <ul id="d-kglist"></ul>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-foot">
+      <span><span class="arr">↓</span>滚动切换相邻世代</span>
+      <span>ESC / ✕ 返回光谱</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =====================================================================
+     数据：8 个世代 + 各自的【实验报告 / 心得分享】（知识图谱小节点）
+     ===================================================================== */
+  const GENS = [
+    { gen:1, model:'SVM', cn:'支持向量机', color:'#6d5cff', band:'δ · 低频起步',
+      one:'在两个人群之间划一条最宽的路 —— 但路是你先替它铺好的。',
+      body:['<b>小样本、高维特征下非常稳</b>；有最大间隔的理论保证，可解释、训练快。',
+            '代价是<b>特征必须由人设计</b> —— 95 维 PSD 把 2 秒的时间结构整个平均掉了。'],
+      gain:'小样本、高维特征下非常稳；有最大间隔的理论保证、可解释、训练快。',
+      cost:'特征必须由人设计。95 维 PSD 把 2 秒的时间结构整个平均掉了 —— 模型从头到尾没「看见」过时间。',
+      eeg:'就是我们现在做的事：手工频带功率 + RBF 核 SVM，被试级 5 折，AUC 0.950。',
+      tags:['手工特征','核技巧','最大间隔'],
+      arts:[
+        {t:'rep', s:'批次混杂',  title:'批次混杂：一个 0.892 AUC 的警告',   date:'2026-10-08', href:'/progress/batch-confound'},
+        {t:'rep', s:'被试级评估', title:'手工特征 + RBF-SVM 的被试级评估',  date:'2026-10-06', href:'/progress'},
+        {t:'note',s:'预处理踩坑', title:'MNE 预处理踩坑合集：顺序、阈值与不报错的坑', date:'2026-10-05', href:'/notes/mne-pitfalls'},
+        {t:'note',s:'epoch 切分', title:'为什么按 epoch 随机切分会得到假的高准确率', date:'2026-09-28', href:'/notes/subject-level-cv'}]},
+
+    { gen:2, model:'MLP', cn:'多层感知机', color:'#8b6df0', band:'δ/θ · 起步',
+      one:'让机器自己铺路 —— 但它不知道路该往哪延伸。',
+      body:['引入<b>反向传播</b>：特征不再靠人设计，端到端一起学。',
+            '但它<b>没有结构先验</b> —— 打乱输入的时间点，结果也跟着乱。'],
+      gain:'引入反向传播：特征不再靠人设计，端到端一起学。这是所有深度模型的起点。',
+      cost:'没有结构先验。把输入的时间点随便打乱，MLP 的结果也只是跟着打乱 —— 它不知道「相邻」意味着什么。',
+      eeg:'几乎不单独用于原始波形，一般只作为最后的分类头（Global Pooling → Linear → 2 类）。',
+      tags:['全连接','反向传播','无结构先验'],
+      arts:[
+        {t:'note',s:'端到端',   title:'从手工特征到端到端：反向传播改变了什么', date:'2026-10-02', href:'/notes'},
+        {t:'rep', s:'MLP 基线', title:'MLP 基线：把 95 维 PSD 喂进全连接',      date:'2026-09-30', href:'/progress'}]},
+
+    { gen:3, model:'1D-CNN / EEGNet', cn:'卷积网络', color:'#a96fe6', band:'α · 提速',
+      one:'只看眼前一小段 —— 但看得又快又准。',
+      body:['把<b>「局部性」和「平移不变性」写进结构</b>；参数量与序列长度无关，可完全并行。',
+            '但<b>感受野有限</b> —— 覆盖 512 点要堆很多层。'],
+      gain:'第一次把「局部性」和「平移不变性」写进网络结构：同一个波形模式出现在哪都识别得出。参数量与序列长度无关。',
+      cost:'感受野有限。要覆盖 512 个点得堆很多层；对真正隔得远的两个事件仍然无力。',
+      eeg:'EEGNet 是最该先跑的深度基线：时间卷积 → 空间深度卷积 → 可分离卷积，参数量只有几千。',
+      tags:['权值共享','感受野','深度可分离卷积'],
+      arts:[
+        {t:'rep', s:'EEGNet 复现', title:'EEGNet 复现：参数量只有几千的深度基线', date:'2026-10-04', href:'/progress'},
+        {t:'note',s:'感受野',      title:'感受野到底能看多长：从 3 层卷积说起',    date:'2026-10-01', href:'/notes'}]},
+
+    { gen:4, model:'RNN / LSTM / GRU', cn:'循环网络', color:'#c56fd2', band:'α/β',
+      one:'一边看一边记 —— 但只能一个点一个点地看。',
+      body:['第一次真正建模「历史」：<b>h_t = f(h_{t−1}, x_t)</b>，理论感受野无限大。',
+            '但<b>必须串行</b>，GPU 并行度极低；梯度消失导致实际记不住太久。'],
+      gain:'第一次真正建模「历史」：h_t = f(h_{t−1}, x_t)，权重在所有时间步共享，理论感受野无限大。',
+      cost:'必须串行（要算 t 得先算 t−1），GPU 并行度极低；梯度消失导致实际记不住太久。',
+      eeg:'多数场合已被 CNN / Transformer 取代。但「隐藏状态」是理解 Mamba 的前提。',
+      tags:['隐藏状态','门控机制','梯度消失'],
+      arts:[
+        {t:'note',s:'隐藏状态', title:'隐藏状态：理解 Mamba 的前置知识', date:'2026-09-29', href:'/notes'},
+        {t:'note',s:'梯度消失', title:'梯度消失为什么让 LSTM 也记不住',  date:'2026-09-26', href:'/notes'}]},
+
+    { gen:5, model:'Transformer', cn:'注意力机制', color:'#de6fb4', band:'β · 全局',
+      one:'一眼看完全文 —— 但文章越长越贵。',
+      body:['任意两位置的路径长度从 O(n) 降到 <b>O(1)</b>，完全可并行，表达力强。',
+            '但 <b>O(n²)</b> 的时间与内存 —— 序列翻倍、代价翻四倍。'],
+      gain:'每个位置直接用 Q 和所有位置的 K 算相似度、加权聚合 V。任意两位置的路径长度从 O(n) 降到 O(1)，完全可并行。',
+      cost:'O(n²) 的时间和内存：序列翻倍、代价翻四倍。位置信息还得靠外加的位置编码。',
+      eeg:'EEG-Conformer 一类的代表。对 2 秒 epoch（512 点）完全够用，这一代要认真学。',
+      tags:['Q / K / V','多头注意力','O(n²)'],
+      arts:[
+        {t:'rep', s:'Conformer', title:'EEG-Conformer 复现与对比实验',    date:'2026-10-03', href:'/progress'},
+        {t:'note',s:'复杂度直觉', title:'注意力复杂度的直觉：为什么是平方', date:'2026-09-27', href:'/notes'}]},
+
+    { gen:6, model:'SSM / S4', cn:'状态空间模型', color:'#f06f8a', band:'β/γ',
+      one:'用一套固定的压缩规则记住全部历史 —— 便宜，但规则是死的。',
+      body:['用<b>线性时不变系统</b>压缩历史；时不变 ⇒ 等价于一个卷积 ⇒ 训练并行、推理 O(1)。',
+            '但<b>时不变 = 不能选择</b> —— 无法按内容决定记什么、忘什么。'],
+      gain:'用一个线性时不变系统压缩历史。关键洞察：时不变 ⇒ 整体等价于一个卷积 ⇒ 训练用 FFT 并行、推理递归 O(1) 内存。',
+      cost:'时不变 = 不能选择。A / B / C / Δ 与输入无关，无法「根据内容决定记住什么、忽略什么」。',
+      eeg:'原始 S4 在 EEG 上用得不多，主要是通往 Mamba 的必经一站。',
+      tags:['状态空间','卷积视角','线性时不变'],
+      arts:[
+        {t:'note',s:'S4 入门', title:'状态空间模型入门：从 RNN 到 S4', date:'2026-09-25', href:'/notes'},
+        {t:'rep', s:'可行性',   title:'S4 在 EEG 上的可行性评估',      date:'2026-09-22', href:'/progress'}]},
+
+    { gen:7, model:'Mamba / S6', cn:'选择性状态空间', color:'#f7954a', band:'γ · 高频',
+      one:'根据内容决定记什么 —— 又便宜又聪明，但只能往后看。',
+      body:['让 <b>B、C、Δ 变成输入的函数（selective）</b>，按内容决定写入与读出。',
+            '代价是失去卷积形式 → 改用<b>并行扫描</b>；遗留问题是<b>因果性</b>。'],
+      gain:'让 B、C、Δ 变成输入的函数（selective）。模型能按当前内容决定「要不要写进状态、要不要读出来」。',
+      cost:'失去卷积形式 → 改用并行扫描 + 硬件感知优化。遗留问题：因果的（单向），只能看历史、看不到未来。',
+      eeg:'已有若干探索工作。线性复杂度的优势只有在序列很长时才体现得出来。',
+      tags:['选择性机制','并行扫描','O(n) 线性'],
+      arts:[
+        {t:'rep', s:'Mamba 探索', title:'Mamba 在 EEG 上的探索：第一批结果', date:'2026-09-20', href:'/outlook/roadmap-svm-to-mamba'},
+        {t:'note',s:'选择性机制', title:'选择性机制：让 B、C、Δ 依赖输入',    date:'2026-09-18', href:'/notes'}]},
+
+    { gen:8, model:'Bi-Mamba', cn:'双向 Mamba', color:'#fbbf24', band:'γ · 终点',
+      one:'前后一起看 —— 离线序列分析的终点。',
+      body:['<b>前向 + 后向两条 Mamba</b> 输出融合，去掉因果限制，每个位置同时拥有左右上下文。',
+            '严格说没有能力缺陷；代价是不再流式 —— 但<b>离线分析根本不需要实时</b>。'],
+      gain:'前向 + 后向两条 Mamba，输出相加 / 拼接 / 门控融合。去掉因果限制：每个位置同时拥有左右上下文。',
+      cost:'严格说没有新的能力缺陷；代价是不再是流式的（不能实时逐点输出）—— 但离线分析根本不需要实时。',
+      eeg:'EEG 的首选。所有 EEG + Mamba 的工作几乎都走这条路：睡眠分期、运动想象、抑郁识别。',
+      tags:['双向扫描','上下文融合','离线首选'],
+      arts:[
+        {t:'rep', s:'Bi-Mamba 路线', title:'Bi-Mamba 离线分析路线图', date:'2026-09-16', href:'/outlook/roadmap-svm-to-mamba'},
+        {t:'note',s:'为什么双向',    title:'双向扫描：为什么离线不需要因果', date:'2026-09-14', href:'/notes'},
+        {t:'note',s:'下一步',        title:'下一步：从 SVM 走到 Bi-Mamba 的完整计划', date:'2026-09-12', href:'/outlook/roadmap-svm-to-mamba'}]},
+  ];
+  const TYPE = { rep:{name:'实验报告',color:'#fbbf24',text:'#fcd34d'},
+                 note:{name:'心得分享',color:'#a78bfa',text:'#c9bcfd'} };
+  const BAND_OF = ['δ · 低频起步','δ/θ · 起步','α · 提速','α/β','β · 全局','β/γ','γ · 高频','γ · 终点'];
+
+  document.body.classList.add('tl-lock');
+
+  /* =====================================================================
+     神经网络背景（与知识图谱小节点共用同一套视觉参数）
+     ===================================================================== */
+  (function () {
+    const cv = document.getElementById('net'), ctx = cv.getContext('2d');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W, H, DPR, nodes = [];
+    const N = 34, LD = 150;
+    function rs(){ DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+      cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+    function init(){ nodes = Array.from({length:N}, () => ({ x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-.5)*.16, vy:(Math.random()-.5)*.16, r:1.3+Math.random()*1.8, ph:Math.random()*6.3 })); }
+    addEventListener('resize', () => { rs(); init(); });
+    rs(); init();
+    (function draw(t){
+      t /= 1000; ctx.clearRect(0,0,W,H);
+      if(!reduced) for(const n of nodes){ n.x+=n.vx; n.y+=n.vy;
+        if(n.x<-20)n.x=W+20; if(n.x>W+20)n.x=-20; if(n.y<-20)n.y=H+20; if(n.y>H+20)n.y=-20; }
+      for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){ const a=nodes[i], b=nodes[j];
+        const d=Math.hypot(a.x-b.x, a.y-b.y);
+        if(d<LD){ ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.strokeStyle=`rgba(167,139,250,${(1-d/LD)*.2})`; ctx.lineWidth=1; ctx.stroke(); } }
+      for(const n of nodes){ const r=n.r*(1+.28*Math.sin(t*1.6+n.ph));
+        ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fillStyle='rgba(196,181,253,.6)';
+        ctx.shadowColor='rgba(167,139,250,.65)'; ctx.shadowBlur=7; ctx.fill(); ctx.shadowBlur=0; }
+      if(!reduced) requestAnimationFrame(draw);
+    })(0);
+  })();
+
+  /* =====================================================================
+     光谱波形 + 全谱渐变
+     ===================================================================== */
+  const NS = 'http://www.w3.org/2000/svg';
+  const stage = document.getElementById('stage');
+  const CENTER_X = 700, CENTER_Y = 392;
+  const SEG = 900, WAVE_X0 = 0, WAVE_X1 = SEG * 8;
+
+  const defs = document.createElementNS(NS, 'defs');
+  stage.appendChild(defs);
+
+  const SPECTRUM = [
+    [  0,'#6d5cff'], [ 11,'#a78bfa'], [ 22,'#d47fe8'], [ 33,'#f0568f'],
+    [ 44,'#f2683c'], [ 54,'#f5a623'], [ 63,'#e8d44d'], [ 72,'#56d364'],
+    [ 80,'#35d0d6'], [ 88,'#5b8dfa'], [ 95,'#a78bfa'], [100,'#eae6ff'],
+  ];
+  const grad = document.createElementNS(NS, 'linearGradient');
+  grad.setAttribute('id','wg'); grad.setAttribute('gradientUnits','userSpaceOnUse');
+  grad.setAttribute('x1', WAVE_X0); grad.setAttribute('x2', WAVE_X1);
+  SPECTRUM.forEach(([off, col]) => { const s = document.createElementNS(NS,'stop');
+    s.setAttribute('offset', off+'%'); s.setAttribute('stop-color', col); grad.appendChild(s); });
+  defs.appendChild(grad);
+
+  /* 右端紫外高亮（宽度压到 9px，否则高频段会糊成灰带） */
+  const tailGrad = document.createElementNS(NS, 'linearGradient');
+  tailGrad.setAttribute('id','tailglow'); tailGrad.setAttribute('gradientUnits','userSpaceOnUse');
+  tailGrad.setAttribute('x1', WAVE_X1-260); tailGrad.setAttribute('x2', WAVE_X1);
+  [[0,'rgba(234,230,255,0)'],[60,'rgba(240,238,255,.10)'],[100,'rgba(255,255,255,.22)']]
+    .forEach(([o,c]) => { const s = document.createElementNS(NS,'stop');
+      s.setAttribute('offset', o+'%'); s.setAttribute('stop-color', c); tailGrad.appendChild(s); });
+  defs.appendChild(tailGrad);
+
+  const NP = 3000, F0 = 1/400, F1 = 1/70;
+  const PTS = new Array(NP + 1);
+  let dPath = '';
+  { let ph = 0; const dx = (WAVE_X1 - WAVE_X0) / NP;
+    for (let i = 0; i <= NP; i++) {
+      const u = i/NP, x = WAVE_X0 + u*(WAVE_X1-WAVE_X0), f = F0*Math.pow(F1/F0, u);
+      const amp = 62 + 34*u, y = CENTER_Y - amp*Math.sin(ph);
+      PTS[i] = { x, y, u };
+      dPath += (i ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
+      ph += Math.PI * 2 * f * dx;
+    } }
+
+  const waveG = document.createElementNS(NS, 'g');
+  stage.appendChild(waveG);
+  { const tg = document.createElementNS(NS,'path');
+    tg.setAttribute('d', dPath); tg.setAttribute('fill','none');
+    tg.setAttribute('stroke','url(#tailglow)'); tg.setAttribute('stroke-width','9');
+    tg.setAttribute('stroke-linecap','round'); waveG.appendChild(tg); }
+  [['13','.09'],['7','.15'],['2.6','1']].forEach(([w,op]) => {
+    const p = document.createElementNS(NS,'path');
+    p.setAttribute('d', dPath); p.setAttribute('fill','none');
+    p.setAttribute('stroke','url(#wg)'); p.setAttribute('stroke-width', w);
+    p.setAttribute('stroke-linecap','round'); p.setAttribute('opacity', op);
+    waveG.appendChild(p);
+  });
+
+  /* ---- 节点吸附到波峰/波谷 ---- */
+  const EXT = [];
+  for (let i = 2; i < NP-1; i++) {
+    const a = PTS[i-1].y, b = PTS[i].y, c = PTS[i+1].y;
+    if ((b-a)*(c-b) < 0) EXT.push(i);
+  }
+  const NODE_X = [], NODE_Y = [], NODE_PROG = [], NODE_PEAK = [];
+  GENS.forEach((g, i) => {
+    const tx = SEG*i + SEG/2;
+    let best = EXT[0], bd = Infinity;
+    for (const e of EXT) { const d = Math.abs(PTS[e].x - tx); if (d < bd) { bd = d; best = e; } }
+    NODE_X.push(PTS[best].x); NODE_Y.push(PTS[best].y);
+    NODE_PROG.push(PTS[best].x / WAVE_X1);
+    NODE_PEAK.push(PTS[best].y < CENTER_Y);
+  });
+  const nodeProg = (i) => NODE_PROG[i];
+  const PROG_MIN = NODE_PROG[0], PROG_MAX = NODE_PROG[NODE_PROG.length-1];
+
+  /* ---- 频带分隔 + 标注（复刻电磁波谱图的「频段竖线 + 标注」） ---- */
+  const BAND_DEF = [
+    { u0:0.000, u1:0.250, key:'δ', name:'Delta', hz:'1–4 Hz'   },
+    { u0:0.250, u1:0.375, key:'θ', name:'Theta', hz:'4–8 Hz'   },
+    { u0:0.375, u1:0.500, key:'α', name:'Alpha', hz:'8–13 Hz'  },
+    { u0:0.500, u1:0.750, key:'β', name:'Beta',  hz:'13–30 Hz' },
+    { u0:0.750, u1:1.000, key:'γ', name:'Gamma', hz:'30–45 Hz' },
+  ];
+  {
+    const DLINE_TOP = 104, DLINE_BOT = 742;
+    for (let i = 1; i < BAND_DEF.length; i++) {
+      const bx = WAVE_X1 * BAND_DEF[i].u0;
+      const ln = document.createElementNS(NS,'line');
+      ln.setAttribute('x1', bx); ln.setAttribute('x2', bx);
+      ln.setAttribute('y1', DLINE_TOP); ln.setAttribute('y2', DLINE_BOT);
+      ln.setAttribute('stroke','rgba(236,233,248,.14)'); ln.setAttribute('stroke-width','1');
+      waveG.appendChild(ln);
+    }
+    BAND_DEF.forEach((b) => {
+      const cx = WAVE_X1 * (b.u0 + b.u1) / 2;
+      const g2 = document.createElementNS(NS,'g');
+      const t1 = document.createElementNS(NS,'text');
+      t1.setAttribute('x', cx); t1.setAttribute('y', 88);
+      t1.setAttribute('text-anchor','middle'); t1.setAttribute('fill','#cfc8ea');
+      t1.setAttribute('font-size','13'); t1.setAttribute('font-weight','700');
+      t1.textContent = b.key + ' ' + b.name;
+      const t2 = document.createElementNS(NS,'text');
+      t2.setAttribute('x', cx); t2.setAttribute('y', 104);
+      t2.setAttribute('text-anchor','middle'); t2.setAttribute('fill','#7d76a4');
+      t2.setAttribute('font-size','10.5'); t2.setAttribute('letter-spacing','0.08em');
+      t2.textContent = b.hz;
+      g2.append(t1, t2); waveG.appendChild(g2);
+    });
+  }
+
+  /* ---- 知识图谱小节点（默认与背景小点逐参数一致，悬停才显现） ---- */
+  const TOP_SAFE = 104, BOT_SAFE = 744, DRIFT_R = 16;
+  const BG_DOT = '#c4b5fd', BG_GLOW = 'rgba(167,139,250,.68)';
+  const satReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const satEls = [];
+  GENS.forEach((g, gi) => {
+    const nx = NODE_X[gi], ny = NODE_Y[gi];
+    const up = NODE_PEAK[gi], dir = up ? -1 : 1, n = g.arts.length;
+    g.arts.forEach((a, k) => {
+      const t = n === 1 ? 0.5 : k/(n-1);
+      const ang = (30 + t*120) * Math.PI/180;
+      const R = 170 + (k%3)*54;
+      let ax = nx + R*Math.cos(ang);
+      let ay = ny + dir*R*Math.sin(ang);
+      if (up  && ay < TOP_SAFE) ay = TOP_SAFE + (k%2)*24;
+      if (!up && ay > BOT_SAFE) ay = BOT_SAFE - (k%2)*24;
+      ax = Math.max(60, Math.min(WAVE_X1-60, ax));
+
+      const col = TYPE[a.t].color, bow = up ? -18 : 18;
+      const link = document.createElementNS(NS,'path');
+      link.setAttribute('fill','none'); link.setAttribute('stroke', col);
+      link.setAttribute('stroke-width','1.2'); link.setAttribute('opacity','0');
+      link.setAttribute('stroke-dasharray','3 4'); link.setAttribute('class','satlink');
+      waveG.appendChild(link);
+
+      const grp = document.createElementNS(NS,'g');
+      grp.setAttribute('class','sat');
+      grp.setAttribute('transform', `translate(${ax},${ay})`);
+      const halo = document.createElementNS(NS,'circle');
+      halo.setAttribute('r','9'); halo.setAttribute('fill', col); halo.setAttribute('opacity','0');
+      const dot = document.createElementNS(NS,'circle');
+      dot.setAttribute('r','2'); dot.setAttribute('fill', BG_DOT);
+      dot.setAttribute('fill-opacity','.72');
+      dot.setAttribute('style', `filter:drop-shadow(0 0 7px ${BG_GLOW})`);
+      const lb = document.createElementNS(NS,'text');
+      lb.setAttribute('y', up ? -11 : 18);
+      lb.setAttribute('font-size','10.5'); lb.setAttribute('font-weight','600');
+      lb.setAttribute('text-anchor','middle');
+      lb.setAttribute('fill', TYPE[a.t].text); lb.setAttribute('opacity','0');
+      lb.textContent = a.s;
+      const hit = document.createElementNS(NS,'circle');
+      hit.setAttribute('r','15'); hit.setAttribute('fill','transparent');
+      grp.append(halo, dot, lb, hit);
+      grp.addEventListener('click', (ev) => { ev.stopPropagation(); openDetail(gi); });
+      grp.addEventListener('mouseenter', () => setHover(gi));
+      grp.addEventListener('mouseleave', () => setHover(-1));
+      waveG.appendChild(grp);
+      satEls.push({ grp, link, dot, halo, lb, genIndex:gi, typeCol:col,
+        ax, ay, ox:0, oy:0, vx:0, vy:0, ph:Math.random()*6.283, up,
+        nx, ny, bow, rev:0, target:0,
+        baseR: satReduced ? 2.2 : (1.3 + Math.random()*1.8) });
+    });
+  });
+
+  let hoverGen = -1;
+  function setHover(gi) {
+    if (hoverGen === gi) return;
+    hoverGen = gi;
+    for (const s of satEls) s.target = (s.genIndex === gi) ? 1 : 0;
+    nodeEls.forEach((n, j) => {
+      n.halo.setAttribute('opacity',
+        j === gi ? '.8' : (j === nearest ? '.55' : '0'));
+    });
+  }
+
+  /* 游走 + 呼吸 + 显现（参数经离线标定：12.1px/秒，半径 ≤16px） */
+  function driftSats(t, dt) {
+    if (satReduced) return;
+    const step = Math.min(2, dt*60), tt = t/1000;
+    for (const s of satEls) {
+      s.vx = (s.vx + (Math.random()-0.5)*0.18*step - s.ox*0.008) * 0.95;
+      s.vy = (s.vy + (Math.random()-0.5)*0.18*step - s.oy*0.008) * 0.95;
+      s.ox += s.vx*step; s.oy += s.vy*step;
+      const d = Math.hypot(s.ox, s.oy);
+      if (d > DRIFT_R) { s.ox *= DRIFT_R/d; s.oy *= DRIFT_R/d; }
+      const X = s.ax + s.ox, Y = s.ay + s.oy;
+      s.grp.setAttribute('transform', `translate(${X.toFixed(1)},${Y.toFixed(1)})`);
+
+      s.rev += (s.target - s.rev) * Math.min(1, 0.16*step);
+      const rv = s.rev;
+      const pl = 1 + 0.26*Math.sin(tt*1.7 + s.ph);
+      s.dot.setAttribute('r', (s.baseR*pl*(1+0.9*rv)).toFixed(2));
+      s.dot.setAttribute('fill-opacity', (0.72 + 0.28*rv).toFixed(2));
+      s.dot.setAttribute('fill', rv > 0.5 ? s.typeCol : BG_DOT);
+      s.dot.setAttribute('style',
+        `filter:drop-shadow(0 0 ${(7+6*rv).toFixed(1)}px ${rv>0.5 ? s.typeCol : BG_GLOW})`);
+      s.halo.setAttribute('r', (9*pl).toFixed(2));
+      s.halo.setAttribute('opacity', (0.20*rv).toFixed(3));
+      s.lb.setAttribute('opacity', rv < 0.02 ? 0 : (rv*rv).toFixed(3));
+      s.link.setAttribute('opacity', (0.62*rv).toFixed(3));
+      s.link.setAttribute('d',
+        `M ${s.nx},${s.ny} Q ${((s.nx+X)/2).toFixed(1)},${((s.ny+Y)/2+s.bow).toFixed(1)} ${X.toFixed(1)},${Y.toFixed(1)}`);
+    }
+  }
+
+  /* ---- 世代大节点 ---- */
+  const nodeEls = GENS.map((g, i) => {
+    const x = NODE_X[i], y = NODE_Y[i];
+    const grp = document.createElementNS(NS,'g');
+    grp.style.cursor = 'pointer';
+    const halo = document.createElementNS(NS,'circle');
+    halo.setAttribute('cx',x); halo.setAttribute('cy',y); halo.setAttribute('r','18');
+    halo.setAttribute('fill','none'); halo.setAttribute('stroke', g.color);
+    halo.setAttribute('stroke-width','1'); halo.setAttribute('opacity','0');
+    const c1 = document.createElementNS(NS,'circle');
+    c1.setAttribute('cx',x); c1.setAttribute('cy',y); c1.setAttribute('r','11');
+    c1.setAttribute('fill','#0b0718'); c1.setAttribute('stroke', g.color); c1.setAttribute('stroke-width','3');
+    const c2 = document.createElementNS(NS,'circle');
+    c2.setAttribute('cx',x); c2.setAttribute('cy',y); c2.setAttribute('r','4.5');
+    c2.setAttribute('fill', g.color);
+    grp.append(halo, c1, c2);
+    const hit = document.createElementNS(NS,'circle');
+    hit.setAttribute('cx',x); hit.setAttribute('cy',y); hit.setAttribute('r','30');
+    hit.setAttribute('fill','transparent'); grp.appendChild(hit);
+    waveG.appendChild(grp);
+    grp.addEventListener('click', () => {
+      if (nearest === i) openDetail(); else { vel = 0; jumpTarget = nodeProg(i); }
+    });
+    grp.addEventListener('mouseenter', () => setHover(i));
+    grp.addEventListener('mouseleave', () => setHover(-1));
+    return { x, y, grp, halo, c1, c2 };
+  });
+
+  /* ---- 动态光点（相机把它恒定保持在水平中心） ---- */
+  const dotG = document.createElementNS(NS,'g');
+  const dotHalo = document.createElementNS(NS,'circle');
+  dotHalo.setAttribute('r','20'); dotHalo.setAttribute('fill','rgba(251,191,36,.18)');
+  const dotRing = document.createElementNS(NS,'circle');
+  dotRing.setAttribute('r','12'); dotRing.setAttribute('fill','none');
+  dotRing.setAttribute('stroke','rgba(251,191,36,.55)'); dotRing.setAttribute('stroke-width','1.4');
+  const dotCore = document.createElementNS(NS,'circle');
+  dotCore.setAttribute('r','5.5'); dotCore.setAttribute('fill','#fbbf24');
+  dotCore.setAttribute('style','filter:drop-shadow(0 0 10px rgba(251,191,36,.95))');
+  dotG.append(dotHalo, dotRing, dotCore);
+  waveG.appendChild(dotG);
+
+  const cross = document.createElementNS(NS,'line');
+  cross.setAttribute('x1', CENTER_X); cross.setAttribute('x2', CENTER_X);
+  cross.setAttribute('y1','80'); cross.setAttribute('y2','740');
+  cross.setAttribute('stroke','rgba(251,191,36,.13)'); cross.setAttribute('stroke-width','1');
+  cross.setAttribute('stroke-dasharray','2 8');
+  stage.appendChild(cross);
+
+  /* ---- 迷你全景图 ---- */
+  const mm = document.getElementById('minimap');
+  const mmG = document.createElementNS(NS,'g');
+  const sx = 398/WAVE_X1, sy = 0.125, ox = 12, oy = 22;
+  mmG.setAttribute('transform',
+    `translate(${ox},${oy}) scale(${sx},${sy}) translate(0,${-CENTER_Y})`);
+  const mmWave = document.createElementNS(NS,'path');
+  mmWave.setAttribute('d', dPath); mmWave.setAttribute('fill','none');
+  mmWave.setAttribute('stroke','url(#wg)'); mmWave.setAttribute('stroke-width','1.5');
+  mmG.appendChild(mmWave); mm.appendChild(mmG);
+  const mmDot = document.createElementNS(NS,'circle');
+  mmDot.setAttribute('r','3.2'); mmDot.setAttribute('fill','#fbbf24');
+  mm.appendChild(mmDot);
+
+  /* =====================================================================
+     手感：速度模型（冲量 + 指数衰减）+ 双阈值收尾 → 随动随停且不卡壳
+     ===================================================================== */
+  const IMPULSE = 0.00085, HALFLIFE = 0.090;
+  const MAX_VEL = 0.30, JUMP_SPEED = 0.32;
+  const EPS_ACTIVE = 0.004, EPS_IDLE = 0.010, IDLE_MS = 300;
+
+  let prog = PROG_MIN, vel = 0, jumpTarget = null, lastWheel = -1e9, lastT = 0;
+  let nearest = -1;
+
+  const C = {
+    accent: document.getElementById('c-accent'), gen: document.getElementById('c-gen'),
+    name: document.getElementById('c-name'),     cn: document.getElementById('c-cn'),
+    one: document.getElementById('c-one'),       body: document.getElementById('c-body'),
+    kg: document.getElementById('c-kg'),         pg: document.getElementById('pg'),
+  };
+  const card = document.getElementById('card');
+  const cardWrap = document.getElementById('cardWrap');
+
+  let firstPlace = true;
+  function placeCard(i) {
+    const peak = NODE_PEAK[i];
+    const H = card.offsetHeight || 210;
+    const y = peak ? Math.max(0, innerHeight - H - 92) : 80;
+    if (firstPlace) {
+      cardWrap.style.transition = 'none';
+      cardWrap.style.transform = `translateY(${y}px)`;
+      void cardWrap.offsetWidth;
+      cardWrap.style.transition = '';
+      firstPlace = false;
+    } else {
+      cardWrap.style.transform = `translateY(${y}px)`;
+    }
+  }
+  addEventListener('resize', () => placeCard(nearest < 0 ? 0 : nearest));
+  /* 卡片高度会随内容换行 / 字体加载变化，高度一变就重新贴底，否则会浮在半空 */
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => { if (nearest >= 0) placeCard(nearest); }).observe(card);
+  }
+
+  function nearestOf(p) {
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < 8; i++) { const d = Math.abs(nodeProg(i) - p); if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+
+  function fillCard(i) {
+    const g = GENS[i];
+    C.accent.style.background = g.color;
+    C.gen.textContent = 'GEN ' + g.gen; C.gen.style.color = g.color;
+    C.name.textContent = g.model; C.cn.textContent = g.cn;
+    C.one.textContent = g.one;
+    C.body.innerHTML = g.body.map((p) => '<p>' + p + '</p>').join('');
+    C.pg.textContent = i + 1;
+
+    const nRep = g.arts.filter((a) => a.t === 'rep').length;
+    const head = `<span class="chip rep" style="cursor:default"><i></i>实验报告 ${nRep}</span>` +
+                 `<span class="chip note" style="cursor:default"><i></i>心得 ${g.arts.length-nRep}</span>`;
+    const items = g.arts.slice(0,2).map((a) =>
+      `<span class="chip ${a.t}" data-g="${i}"><i></i>${a.s}</span>`).join('');
+    C.kg.innerHTML = head + items +
+      `<span class="chip more" data-g="${i}">在图谱中查看全部 ${g.arts.length} 篇 →</span>`;
+    card.classList.remove('zoomin'); void card.offsetWidth; card.classList.add('zoomin');
+
+    nodeEls.forEach((n, j) => {
+      n.c1.setAttribute('stroke-width', j === i ? '4.5' : '3');
+      n.c1.setAttribute('r', j === i ? '13' : '11');
+      n.c2.setAttribute('r', j === i ? '6' : '4.5');
+      n.halo.setAttribute('opacity', j === hoverGen ? '.8' : (j === i ? '.55' : '0'));
+    });
+    placeCard(i);
+  }
+  C.kg.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip[data-g]');
+    if (chip) openDetail(parseInt(chip.dataset.g, 10));
+  });
+
+  function apply() {
+    const idx = Math.max(0, Math.min(NP, Math.round(prog * NP)));
+    const p = PTS[idx];
+    dotG.setAttribute('transform', `translate(${p.x},${p.y})`);
+    waveG.setAttribute('transform', `translate(${CENTER_X - p.x},0)`);
+    mmDot.setAttribute('cx', ox + p.x*sx);
+    mmDot.setAttribute('cy', oy + (p.y - CENTER_Y)*sy);
+    const n = nearestOf(prog);
+    if (n !== nearest) { nearest = n; fillCard(n); }
+  }
+
+  function loop(t) {
+    if (!lastT) lastT = t;
+    const dt = Math.min(0.05, (t - lastT)/1000); lastT = t;
+    driftSats(t, dt);
+    let moved = false;
+    if (jumpTarget !== null) {
+      const diff = jumpTarget - prog;
+      if (Math.abs(diff) < 1e-5) { prog = jumpTarget; jumpTarget = null; }
+      else { const st = JUMP_SPEED*dt; prog += Math.sign(diff)*Math.min(st, Math.abs(diff)); moved = true; }
+    } else if (vel !== 0) {
+      prog += vel*dt;
+      vel *= Math.pow(0.5, dt/HALFLIFE);
+      const eps = (t - lastWheel) > IDLE_MS ? EPS_IDLE : EPS_ACTIVE;
+      if (Math.abs(vel) < eps) vel = 0;
+      moved = true;
+    }
+    if (moved) {
+      if (prog < PROG_MIN) { prog = PROG_MIN; vel = 0; }
+      if (prog > PROG_MAX) { prog = PROG_MAX; vel = 0; jumpTarget = null; }
+      apply();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  addEventListener('wheel', (e) => {
+    if (detail.classList.contains('open')) return;
+    if (e.target.closest && e.target.closest('.legend')) return;
+    e.preventDefault();
+    /* Firefox 的 deltaMode=1（行）需归一化，否则跨浏览器快慢差十几倍 */
+    const dy = e.deltaMode === 1 ? e.deltaY*16 : e.deltaMode === 2 ? e.deltaY*400 : e.deltaY;
+    jumpTarget = null;
+    vel += dy * IMPULSE;
+    vel = Math.max(-MAX_VEL, Math.min(MAX_VEL, vel));
+    lastWheel = performance.now();
+  }, { passive: false });
+
+  document.getElementById('next').onclick = () => {
+    vel = 0; jumpTarget = Math.min(PROG_MAX, nodeProg(Math.min(7, nearest+1)));
+  };
+  document.getElementById('prev').onclick = () => {
+    vel = 0; jumpTarget = Math.max(PROG_MIN, nodeProg(Math.max(0, nearest-1)));
+  };
+  addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea')) return;
+    const open = detail.classList.contains('open');
+    if (e.key === 'ArrowRight') open ? dGo(Math.min(7, nearest+1)) : document.getElementById('next').click();
+    if (e.key === 'ArrowLeft')  open ? dGo(Math.max(0, nearest-1)) : document.getElementById('prev').click();
+    if (e.key === 'Enter' && !open) openDetail();
+    if (e.key === 'Escape' && open) closeDetail();
+  });
+
+  let tx0 = null;
+  addEventListener('touchstart', (e) => { tx0 = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', (e) => {
+    if (detail.classList.contains('open') || tx0 === null) return;
+    const dx = e.changedTouches[0].clientX - tx0; tx0 = null;
+    if (Math.abs(dx) > 40) { vel += (dx < 0 ? 1 : -1)*0.16; vel = Math.max(-MAX_VEL, Math.min(MAX_VEL, vel)); }
+  }, { passive: true });
+
+  /* =====================================================================
+     全屏详情
+     ===================================================================== */
+  const detail = document.getElementById('detail');
+  const D = {
+    accent: document.getElementById('d-accent'), gen: document.getElementById('d-gen'),
+    name: document.getElementById('d-name'),     cn: document.getElementById('d-cn'),
+    one: document.getElementById('d-one'),       gain: document.getElementById('d-gain'),
+    cost: document.getElementById('d-cost'),     eeg: document.getElementById('d-eeg'),
+    pg: document.getElementById('d-pg'),         big: document.getElementById('d-big'),
+    band: document.getElementById('d-band'),     railtags: document.getElementById('d-railtags'),
+    kglist: document.getElementById('d-kglist'), kgcnt: document.getElementById('d-kgcnt'),
+    body: document.getElementById('d-body'),     view: document.querySelector('#tl .d-view'),
+  };
+
+  function dFill(i) {
+    const g = GENS[i];
+    D.accent.style.background = g.color;
+    D.gen.textContent = 'GEN ' + g.gen; D.gen.style.color = g.color;
+    D.name.textContent = g.model; D.cn.textContent = g.cn;
+    D.one.textContent = g.one; D.gain.textContent = g.gain;
+    D.cost.textContent = g.cost; D.eeg.textContent = g.eeg;
+    D.pg.textContent = `GEN ${g.gen} / 8`;
+    D.big.textContent = 'G' + g.gen; D.big.style.color = g.color;
+    D.band.textContent = BAND_OF[i] || '';
+    D.railtags.innerHTML = g.tags.map((t) => `<span>${t}</span>`).join('');
+    const nRep = g.arts.filter((a) => a.t === 'rep').length;
+    D.kgcnt.textContent = `实验报告 ${nRep} · 心得分享 ${g.arts.length - nRep}`;
+    D.kglist.innerHTML = g.arts.map((a) =>
+      `<li data-href="${a.href}"><i class="${a.t}"></i>` +
+      `<span class="ty">${TYPE[a.t].name}</span>` +
+      `<span class="ti">${a.title}</span><span class="arw">→</span></li>`).join('');
+  }
+  D.kglist.addEventListener('click', (e) => {
+    const li = e.target.closest('li[data-href]');
+    if (li) location.href = li.dataset.href;
+  });
+
+  function dGo(i) {
+    i = Math.max(0, Math.min(7, i));
+    if (i === nearest) return;
+    const dir = i > nearest ? 1 : -1;
+    vel = 0; jumpTarget = nodeProg(i);
+    D.body.classList.add(dir > 0 ? 'out-up' : 'out-dn');
+    setTimeout(() => {
+      nearest = i; fillCard(i); dFill(i);
+      D.body.classList.remove('out-up','out-dn');
+      D.body.classList.remove('in-up','in-dn'); void D.body.offsetWidth;
+      D.body.classList.add(dir > 0 ? 'in-up' : 'in-dn');
+      D.view.scrollTop = 0;
+      setTimeout(() => D.body.classList.remove('in-up','in-dn'), 420);
+    }, 280);
+  }
+  function openDetail(force) {
+    const i = (typeof force === 'number') ? force : nearest;
+    if (i !== nearest) { nearest = i; fillCard(i); vel = 0; jumpTarget = nodeProg(i); }
+    dFill(i); detail.classList.add('open'); D.view.scrollTop = 0;
+  }
+  function closeDetail() { detail.classList.remove('open'); }
+  document.getElementById('d-close').onclick = closeDetail;
+  document.getElementById('d-next').onclick = () => dGo(Math.min(7, nearest+1));
+  document.getElementById('d-prev').onclick = () => dGo(Math.max(0, nearest-1));
+
+  let dLock = false;
+  detail.addEventListener('wheel', (e) => {
+    /* 内容超出一屏时，先让内容自己滚，到顶/到底才切换世代 */
+    const canScroll = D.view.scrollHeight > D.view.clientHeight + 4;
+    if (canScroll) {
+      const atTop = D.view.scrollTop <= 0;
+      const atBot = D.view.scrollTop + D.view.clientHeight >= D.view.scrollHeight - 2;
+      if (!(atTop && e.deltaY < 0) && !(atBot && e.deltaY > 0)) return;
+    }
+    e.preventDefault();
+    if (dLock) return; dLock = true; setTimeout(() => { dLock = false; }, 560);
+    dGo(nearest + (e.deltaY > 0 ? 1 : -1));
+  }, { passive: false });
+
+  /* 初始化 */
+  apply(); fillCard(0);
+
+  /* 便于分享定位：?gen=3 直接跳到第 3 代 */
+  const q = new URLSearchParams(location.search);
+  const gq = q.get('gen');
+  if (gq !== null) {
+    const n = Math.max(0, Math.min(7, (parseInt(gq, 10) || 1) - 1));
+    prog = nodeProg(n); vel = 0; jumpTarget = null; nearest = n;
+    firstPlace = true; apply(); fillCard(n);
+  }
+</script>
+
+<style is:global>
+  /* =====================================================================
+     全部选择器以 #tl 为前缀 —— 避免与 global.css 的 .card / .brand /
+     .container / .hero 等通用类名互相污染。
+     ===================================================================== */
+  body.tl-lock { overflow: hidden; }
+  body.bare { background: #070512; }
+
+  #tl {
+    --tl-ink: #ece9f8; --tl-ink2: #a49dc6; --tl-dim: #6f689a;
+    --tl-vi: #a78bfa; --tl-vi-deep: #8b5cf6; --tl-vi-line: rgba(167,139,250,.16);
+    --tl-am: #fbbf24; --tl-panel: rgba(21,16,44,.6);
+    position: fixed; inset: 0; overflow: hidden;
+    background: #070512; color: var(--tl-ink);
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, sans-serif;
+  }
+  #tl *, #tl *::before, #tl *::after { box-sizing: border-box; }
+  #tl button { font-family: inherit; }
+  #tl a { text-decoration: none; }
+
+  #tl #net { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  #tl .veil { position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(1100px 620px at 50% 26%, rgba(7,5,18,.06), rgba(7,5,18,.6) 78%); }
+
+  /* ---------- 顶栏：左上角导航 ---------- */
+  #tl .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 22px;
+    padding: 14px 26px; background: linear-gradient(rgba(7,5,18,.9), transparent);
+    pointer-events: none; }
+  #tl .topbar > * { pointer-events: auto; }
+  #tl .tl-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; min-width: 0; }
+  #tl .brand { display: flex; align-items: center; gap: 10px; font-weight: 800;
+    font-size: 16px; color: var(--tl-ink); flex: none; }
+  #tl .brand .orb { width: 12px; height: 12px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #d6c8ff, var(--tl-vi) 60%, #5b3fb8);
+    box-shadow: 0 0 14px var(--tl-vi); }
+  #tl .brand small { display: block; font-size: 10px; font-weight: 500;
+    color: var(--tl-dim); letter-spacing: .14em; }
+  #tl .mainnav { display: flex; gap: 6px; flex-wrap: wrap; }
+  #tl .mainnav a { font-size: 13.5px; color: var(--tl-ink2); padding: 7px 14px;
+    border-radius: 999px; border: 1px solid var(--tl-vi-line);
+    background: rgba(21,16,44,.6); backdrop-filter: blur(8px); transition: .18s; }
+  #tl .mainnav a:hover { border-color: var(--tl-vi); color: var(--tl-ink); }
+  #tl .mainnav a[aria-current="page"] { background: rgba(167,139,250,.14);
+    color: var(--tl-vi); font-weight: 700; }
+
+  #tl .mm-box { display: flex; align-items: center; gap: 10px; flex: none; }
+  #tl .mm-cap { font-family: "Cascadia Code", Consolas, monospace; font-size: 10px;
+    color: var(--tl-dim); letter-spacing: .12em; }
+  #tl #minimap { height: 40px; width: min(360px, 30vw); opacity: .92; }
+
+  /* ---------- 图例（左下角） ---------- */
+  #tl .legend { position: fixed; bottom: 92px; left: 26px; z-index: 12;
+    display: flex; flex-direction: column; gap: 8px;
+    background: var(--tl-panel); border: 1px solid var(--tl-vi-line);
+    border-radius: 14px; padding: 12px 15px; backdrop-filter: blur(10px); }
+  #tl .legend .t { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px;
+    color: var(--tl-dim); letter-spacing: .14em; margin-bottom: 2px; }
+  #tl .legend .row { display: flex; align-items: center; gap: 9px;
+    font-size: 12.5px; color: var(--tl-ink2); }
+  #tl .legend .sw { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  #tl .legend .sw.big { width: 14px; height: 14px; background: #0b0718;
+    border: 2.5px solid var(--tl-vi); }
+  #tl .legend .sw.rep { background: var(--tl-am); box-shadow: 0 0 7px var(--tl-am); }
+  #tl .legend .sw.note { background: var(--tl-vi); box-shadow: 0 0 7px var(--tl-vi); }
+  #tl .legend .sw.line { width: 18px; height: 1px; border-radius: 0;
+    background: repeating-linear-gradient(90deg, var(--tl-dim) 0 3px, transparent 3px 6px); }
+  #tl .legend .hint { margin-top: 5px; padding-top: 9px;
+    border-top: 1px dashed var(--tl-vi-line); font-size: 11.5px; color: var(--tl-am); }
+  #tl .legend .hint2 { margin-top: 3px; font-size: 11.5px; color: var(--tl-vi); }
+
+  /* ---------- 主舞台 ---------- */
+  #tl #stage { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 2; }
+  #tl #stage text { font-family: inherit; user-select: none; }
+  #tl .sat { cursor: pointer; }
+  #tl .sat text { pointer-events: none; }
+  #tl .satlink { pointer-events: none; }
+
+  /* ---------- 简介卡（随峰谷翻面） ---------- */
+  #tl .card-wrap { position: fixed; left: 0; right: 0; top: 0; z-index: 10;
+    transition: transform .55s cubic-bezier(.2,.85,.25,1); }
+  #tl .card { width: min(880px, 93vw); margin: 0 auto; position: relative;
+    background: var(--tl-panel); border: 1px solid var(--tl-vi-line);
+    border-radius: 20px; padding: 20px 26px; backdrop-filter: blur(14px);
+    overflow: hidden; box-shadow: 0 20px 60px rgba(60,30,150,.32); }
+  #tl .card .accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    transition: background .3s; }
+  #tl .card .genrow { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  #tl .card .gen { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px;
+    font-weight: 700; letter-spacing: .1em; border: 1px solid currentColor;
+    border-radius: 6px; padding: 2px 10px; }
+  #tl .card h2 { font-size: 23px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+  #tl .card .cn { font-size: 13.5px; color: var(--tl-dim); }
+  #tl .card .one { font-size: 14.5px; color: var(--tl-ink2); font-style: italic;
+    margin: 7px 0 11px; }
+  #tl .card .body { font-size: 14px; line-height: 1.8; color: var(--tl-ink2); }
+  #tl .card .body p { margin: 0 0 6px; }
+  #tl .card .body b { color: #fff; }
+  #tl .kgline { display: flex; align-items: center; gap: 10px; margin-top: 13px;
+    padding-top: 12px; border-top: 1px dashed var(--tl-vi-line); flex-wrap: wrap; }
+  #tl .kgline .lbl { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px;
+    color: var(--tl-dim); letter-spacing: .12em; flex: none; }
+  #tl .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px;
+    color: var(--tl-ink2); background: rgba(167,139,250,.06);
+    border: 1px solid var(--tl-vi-line); border-radius: 999px; padding: 3px 12px;
+    cursor: pointer; transition: .16s; }
+  #tl .chip:hover { border-color: var(--tl-vi); color: var(--tl-ink); }
+  #tl .chip i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  #tl .chip.rep i { background: var(--tl-am); box-shadow: 0 0 6px var(--tl-am); }
+  #tl .chip.note i { background: var(--tl-vi); box-shadow: 0 0 6px var(--tl-vi); }
+  #tl .chip.more { color: var(--tl-am); border-color: rgba(251,191,36,.28);
+    background: rgba(251,191,36,.14); font-weight: 700; }
+  #tl .card.zoomin { animation: tl-zoomin .5s cubic-bezier(.2,.8,.3,1); }
+  @keyframes tl-zoomin {
+    from { opacity: 0; transform: scale(.8) translateY(22px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---------- 底部控制 ---------- */
+  #tl .controls { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 34px; background: linear-gradient(transparent, rgba(7,5,18,.93) 42%); }
+  #tl .scrollhint { display: flex; align-items: center; gap: 10px;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12px;
+    color: var(--tl-dim); letter-spacing: .08em; }
+  #tl .scrollhint .wheel { width: 15px; height: 24px; border: 2px solid var(--tl-vi);
+    border-radius: 8px; position: relative; }
+  #tl .scrollhint .wheel::before { content: ""; position: absolute; left: 50%; top: 4px;
+    width: 3px; height: 6px; background: var(--tl-am); border-radius: 2px;
+    transform: translateX(-50%); animation: tl-whl 1.6s ease-in-out infinite; }
+  @keyframes tl-whl { 0%,100% { top: 4px; opacity: 1; } 50% { top: 12px; opacity: .2; } }
+  #tl .pageinfo { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px;
+    color: var(--tl-dim); letter-spacing: .12em; }
+  #tl .pageinfo b { color: var(--tl-ink); font-size: 16px; }
+  #tl .navbtns { display: flex; gap: 12px; }
+  #tl .nbtn { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px;
+    font-weight: 700; padding: 12px 26px; border-radius: 999px;
+    border: 1px solid var(--tl-vi-line); color: var(--tl-ink2);
+    background: rgba(21,16,44,.7); cursor: pointer; transition: .18s;
+    backdrop-filter: blur(8px); }
+  #tl .nbtn:hover { border-color: var(--tl-vi); color: var(--tl-ink); }
+  #tl .nbtn.next { background: linear-gradient(120deg, var(--tl-vi-deep), var(--tl-vi));
+    color: #120a24; border-color: transparent;
+    box-shadow: 0 6px 26px rgba(139,92,246,.4); animation: tl-nb 2.2s ease-in-out infinite; }
+  @keyframes tl-nb { 50% { box-shadow: 0 6px 40px rgba(139,92,246,.7); } }
+
+  /* ---------- 全屏详情 ---------- */
+  #tl .detail { position: fixed; inset: 0; z-index: 50; background: rgba(7,5,18,.965);
+    backdrop-filter: blur(16px); transform: translateY(102%);
+    transition: transform .55s cubic-bezier(.2,.85,.25,1);
+    display: flex; flex-direction: column; }
+  #tl .detail.open { transform: translateY(0); }
+  #tl .d-top { display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 38px; border-bottom: 1px solid var(--tl-vi-line); flex: none; }
+  #tl .d-top .lab { font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px;
+    color: var(--tl-dim); letter-spacing: .18em; }
+  #tl .d-top .lab b { color: var(--tl-am); }
+  #tl .d-top .nav { display: flex; align-items: center; gap: 12px; }
+  #tl .d-arrow { width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--tl-vi-line); background: rgba(21,16,44,.7);
+    color: var(--tl-ink2); font-size: 16px; cursor: pointer; transition: .18s; }
+  #tl .d-arrow:hover { border-color: var(--tl-vi); color: var(--tl-ink); }
+  #tl .d-close { width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--tl-vi-line); background: rgba(21,16,44,.7);
+    color: var(--tl-ink); font-size: 17px; cursor: pointer; transition: .18s; }
+  #tl .d-close:hover { border-color: var(--tl-am); color: var(--tl-am); transform: rotate(90deg); }
+
+  #tl .d-view { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; }
+  #tl .d-body { min-height: 100%; display: flex; align-items: center;
+    justify-content: center; padding: 20px 24px;
+    transition: .38s cubic-bezier(.2,.8,.3,1); }
+  #tl .d-body.out-up { opacity: 0; transform: translateY(-40px); transition: .28s ease; }
+  #tl .d-body.out-dn { opacity: 0; transform: translateY(40px);  transition: .28s ease; }
+  #tl .d-body.in-up { animation: tl-inUp .4s cubic-bezier(.2,.8,.3,1); }
+  #tl .d-body.in-dn { animation: tl-inDn .4s cubic-bezier(.2,.8,.3,1); }
+  @keyframes tl-inUp { from { opacity: 0; transform: translateY(40px); }  to { opacity: 1; transform: none; } }
+  @keyframes tl-inDn { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: none; } }
+
+  #tl .d-card { width: min(1500px, 100%); position: relative; overflow: hidden;
+    background: var(--tl-panel); border: 1px solid var(--tl-vi-line); border-radius: 24px;
+    box-shadow: 0 24px 70px rgba(60,30,150,.35);
+    display: grid; grid-template-columns: clamp(180px, 15vw, 236px) 1fr;
+    gap: clamp(22px, 2.6vw, 48px);
+    padding: clamp(24px, 2.6vw, 44px) clamp(26px, 3vw, 54px); }
+  #tl .d-card .accent { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+  #tl .d-rail { display: flex; flex-direction: column; gap: clamp(14px, 1.5vw, 22px);
+    border-right: 1px solid var(--tl-vi-line); padding-right: clamp(18px, 2vw, 36px); }
+  #tl .d-big { font-family: "Cascadia Code", Consolas, monospace; font-weight: 800;
+    line-height: .84; letter-spacing: -.05em; font-size: clamp(52px, 6.4vw, 96px); }
+  #tl .d-band { font-family: "Cascadia Code", Consolas, monospace;
+    font-size: clamp(10.5px, .9vw, 13px); color: var(--tl-dim); letter-spacing: .16em; }
+  #tl .d-railtags { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; }
+  #tl .d-railtags span { font-family: "Cascadia Code", Consolas, monospace;
+    font-size: clamp(11px, .85vw, 12.5px); color: var(--tl-ink2);
+    background: rgba(167,139,250,.06); border: 1px solid var(--tl-vi-line);
+    border-radius: 7px; padding: 5px 10px; text-align: center; }
+  #tl .d-content { min-width: 0; display: flex; flex-direction: column;
+    gap: clamp(14px, 1.4vw, 22px); }
+  #tl .d-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  #tl .d-head .gen { font-family: "Cascadia Code", Consolas, monospace;
+    font-size: clamp(11.5px, .95vw, 13.5px); font-weight: 700; letter-spacing: .12em;
+    border: 1px solid currentColor; border-radius: 7px; padding: 3px 12px; }
+  #tl .d-head h2 { font-size: clamp(28px, 3.3vw, 48px); font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.06; margin: 0; }
+  #tl .d-head .cn { font-size: clamp(13px, 1.15vw, 17px); color: var(--tl-dim); }
+  #tl .d-one { font-size: clamp(15px, 1.3vw, 19.5px); color: var(--tl-ink2);
+    font-style: italic; line-height: 1.6; padding-left: 14px;
+    border-left: 2px solid var(--tl-vi-line); margin: 0; }
+  #tl .d-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.3vw, 20px); }
+  #tl .d-panel { border-radius: 13px; padding: clamp(14px, 1.4vw, 22px) clamp(16px, 1.6vw, 26px); }
+  #tl .d-panel h4 { font-size: clamp(11px, .92vw, 13px); font-weight: 800;
+    letter-spacing: .1em; margin: 0 0 8px; }
+  #tl .d-panel p { font-size: clamp(13.5px, 1.05vw, 16.5px); line-height: 1.8; margin: 0; }
+  #tl .d-panel.gain { background: rgba(74,222,128,.075); border: 1px solid rgba(74,222,128,.24); color: #bbf7d0; }
+  #tl .d-panel.gain h4 { color: #4ade80; }
+  #tl .d-panel.cost { background: rgba(251,191,36,.075); border: 1px solid rgba(251,191,36,.24); color: #fde68a; }
+  #tl .d-panel.cost h4 { color: var(--tl-am); }
+  #tl .d-panel.eeg { background: rgba(167,139,250,.075); border: 1px solid var(--tl-vi-line); color: var(--tl-ink2); }
+  #tl .d-panel.eeg h4 { color: var(--tl-vi); }
+  #tl .d-kg { border-radius: 13px; border: 1px solid var(--tl-vi-line);
+    background: linear-gradient(180deg, rgba(167,139,250,.055), rgba(167,139,250,.015));
+    padding: clamp(14px, 1.4vw, 22px) clamp(16px, 1.6vw, 26px); }
+  #tl .d-kg h4 { font-size: clamp(11px, .92vw, 13px); font-weight: 800;
+    letter-spacing: .1em; color: var(--tl-vi); margin: 0 0 11px;
+    display: flex; align-items: center; gap: 9px; }
+  #tl .d-kg h4 .cnt { font-family: "Cascadia Code", Consolas, monospace;
+    font-weight: 400; color: var(--tl-dim); letter-spacing: .06em; }
+  #tl .d-kg ul { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
+  #tl .d-kg li { display: flex; align-items: center; gap: 11px;
+    font-size: clamp(13px, 1.02vw, 16px); padding: 8px 12px; border-radius: 9px;
+    background: rgba(7,5,18,.4); border: 1px solid transparent;
+    cursor: pointer; transition: .16s; }
+  #tl .d-kg li:hover { border-color: var(--tl-vi-line); background: rgba(167,139,250,.07); }
+  #tl .d-kg li i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  #tl .d-kg li i.rep { background: var(--tl-am); box-shadow: 0 0 7px var(--tl-am); }
+  #tl .d-kg li i.note { background: var(--tl-vi); box-shadow: 0 0 7px var(--tl-vi); }
+  #tl .d-kg li .ty { font-family: "Cascadia Code", Consolas, monospace;
+    font-size: clamp(10px, .82vw, 11.5px); color: var(--tl-dim); flex: none; }
+  #tl .d-kg li .ti { color: var(--tl-ink); flex: 1; min-width: 0; }
+  #tl .d-kg li .arw { color: var(--tl-dim); font-size: 12px; flex: none; }
+  #tl .d-foot { flex: none; padding: 12px 38px; border-top: 1px solid var(--tl-vi-line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: var(--tl-dim); }
+  #tl .d-foot .arr { animation: tl-bob 1.6s ease-in-out infinite;
+    color: var(--tl-am); margin-right: 6px; display: inline-block; }
+  @keyframes tl-bob { 50% { transform: translateY(4px); } }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 1100px) {
+    #tl .legend { display: none; }
+    #tl .mm-box { display: none; }
+  }
+  @media (max-width: 1000px) {
+    #tl .d-card { grid-template-columns: 1fr; }
+    #tl .d-rail { border-right: 0; border-bottom: 1px solid var(--tl-vi-line);
+      padding: 0 0 16px; flex-direction: row; align-items: baseline;
+      flex-wrap: wrap; gap: 14px; }
+    #tl .d-big { font-size: 46px; }
+    #tl .d-railtags { flex-direction: row; flex-wrap: wrap; }
+    #tl .d-cols { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 860px) {
+    #tl .card { padding: 16px 18px; }
+    #tl .scrollhint { display: none; }
+    #tl .topbar { flex-wrap: wrap; padding: 12px 16px; }
+    #tl .mainnav a { font-size: 12.5px; padding: 6px 11px; }
+  }
+  @media print {
+    #tl #net, #tl .veil, #tl #stage, #tl .legend, #tl .controls,
+    #tl .card-wrap, #tl .topbar { display: none !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #tl .card.zoomin, #tl .nbtn.next, #tl .scrollhint .wheel::before,
+    #tl .d-foot .arr { animation: none !important; }
+  }
+</style>
