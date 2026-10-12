@@ -15,13 +15,8 @@
  *
  * 样式全部以 #tl 为前缀，避免与 global.css 的 .card/.brand/.container 冲突。
  */
-import { SECTIONS, SECTION_KEYS } from '../consts';
+import { NAV } from '../consts';
 
-const NAV = [
-  ...SECTION_KEYS.map((k) => ({ href: `/${k}`, label: SECTIONS[k].label })),
-  { href: '/resources', label: '资源' },
-  { href: '/about', label: '关于' },
-];
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 ---

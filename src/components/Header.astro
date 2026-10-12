@@ -1,5 +1,5 @@
 ---
-import { SITE, SECTIONS, SECTION_KEYS } from '../consts';
+import { SITE, NAV } from '../consts';
 
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
@@ -15,28 +15,19 @@ const isActive = (href: string) =>
         <small>EEG · DEPRESSION</small>
       </span>
     </a>
+    <!-- 与主页时间线左上角共用 consts.NAV，按钮样式见 global.css 的 nav.main -->
     <nav class="main">
       {
-        SECTION_KEYS.map((k) => (
+        NAV.map((n) => (
           <a
-            href={`/${k}`}
+            href={n.href}
             data-cursor="link"
-            aria-current={isActive(`/${k}`) ? 'page' : undefined}
+            aria-current={isActive(n.href) ? 'page' : undefined}
           >
-            {SECTIONS[k].label}
+            {n.label}
           </a>
         ))
       }
-      <a href="/about" data-cursor="link" aria-current={isActive('/about') ? 'page' : undefined}>
-        关于
-      </a>
-      <a
-        href="/resources"
-        data-cursor="link"
-        aria-current={isActive('/resources') ? 'page' : undefined}
-      >
-        资源
-      </a>
     </nav>
   </div>
 </header>

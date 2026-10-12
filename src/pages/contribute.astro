@@ -209,10 +209,13 @@ import { CONTRIBUTE, REPO } from '../consts';
     box-shadow: 0 6px 28px rgba(139, 92, 246, 0.35);
   }
   .btn.primary:hover { box-shadow: 0 10px 36px rgba(139, 92, 246, 0.55); }
+  /* 跳转站内页面 —— 与主导航按钮同一套视觉语言 */
   .btn.ghost {
-    background: rgba(167, 139, 250, 0.05);
+    background: rgba(21, 16, 44, 0.6);
     border-color: var(--vi-line);
     color: var(--ink-2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
   .btn.ghost:hover { border-color: var(--vi); color: var(--ink); }
 

@@ -52,3 +52,14 @@ export const SECTIONS = {
 
 export type SectionKey = keyof typeof SECTIONS;
 export const SECTION_KEYS = Object.keys(SECTIONS) as SectionKey[];
+
+/**
+ * 主导航 —— 全站唯一数据源。
+ * Header（各内容页顶栏）与 Timeline（主页左上角）都引用它，
+ * 保证「切换页面的按钮」在任何页面都完全一致（文案、顺序、目标）。
+ */
+export const NAV = [
+  ...SECTION_KEYS.map((k) => ({ href: `/${k}`, label: SECTIONS[k].label })),
+  { href: '/resources', label: '资源' },
+  { href: '/about', label: '关于' },
+] as const;
