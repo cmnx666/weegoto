@@ -1,13 +1,15 @@
 ---
 /**
- * 主页 = 全屏光谱时间线（唯一内容）
+ * 主页 = 三维脑网络开场 → 全屏光谱时间线
  * 其余内容都在 /progress、/outlook、/notes、/resources、/about 各页，
  * 入口在时间线左上角的导航按钮里。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Timeline from '../components/Timeline.astro';
+import BrainIntro from '../components/BrainIntro.astro';
 ---
 
 <BaseLayout bare>
   <Timeline />
+  <BrainIntro />
 </BaseLayout>
