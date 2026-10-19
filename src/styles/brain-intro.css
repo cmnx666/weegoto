@@ -11,3 +11,14 @@ body.intro-open #brain-canvas { cursor: grab !important; }
 body.intro-open #intro.dragging #brain-canvas,
 body.intro-open #intro.dragging .cortex-hit { cursor: grabbing !important; }
 body.intro-open #wg-cursor, body.intro-open #wg-tag { visibility: hidden; }
+
+/* Named 10-20 scalp sites; label leaders are drawn on the existing canvas. */
+.electrode-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
+#intro .eeg-hit:not([data-positioned]){visibility:hidden}
+#intro .eeg-hit{position:absolute;left:70%;top:50%;width:44px;height:26px;margin:-13px 0 0 -22px;border:1px solid #9cd4f877;border-radius:8px;background:#061422e8;color:#dbf1ff;pointer-events:auto;touch-action:none;box-shadow:0 0 12px #6aacf025;transition:opacity .25s,border-color .2s,background .2s;opacity:1}
+#intro .eeg-hit .eeg-label{font:600 11px/1 var(--mono);letter-spacing:.3px;pointer-events:none}
+#intro .eeg-hit[data-depth=far]{border-style:dashed;opacity:.67}
+#intro .eeg-hit:hover,#intro .eeg-hit:focus-visible{opacity:1;border-color:#ffe1a0;background:#30241a;color:#fff0cf;box-shadow:0 0 18px #d3b47144;z-index:2}
+#intro.running .electrode-layer{opacity:0;pointer-events:none}
+#intro.running .eeg-hit{pointer-events:none}
+@media(max-width:680px){#intro .eeg-hit{width:40px;height:26px;margin-left:-20px}#intro .eeg-hit .eeg-label{font-size:10px}}

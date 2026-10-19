@@ -1,5 +1,6 @@
 
 import { initTimeline } from './timeline.js';
+import { electrodeAnchors, layoutElectrodeLabels } from '../lib/eeg-electrodes.mjs';
 
 (async () => {
   'use strict';
@@ -7,7 +8,9 @@ import { initTimeline } from './timeline.js';
   const $ = id => document.getElementById(id);
   const cv=$('brain-canvas'),ctx=cv.getContext('2d'),intro=$('intro');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const hit=$('core-hit'),leftHit=$('core-hit-left'),rightHit=$('core-hit-right');
+  const electrodeButtons=[...intro.querySelectorAll('[data-eeg]')];
+  const activationControls=[...electrodeButtons,$('enter-intro')];
+  const buttonByName=new Map(electrodeButtons.map(button=>[button.dataset.eeg,button]));
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
   const smooth=(x)=>{x=clamp(x);return x*x*(3-2*x)};
   const mix=(a,b,t)=>a+(b-a)*t;
@@ -89,13 +92,15 @@ import { initTimeline } from './timeline.js';
     near.sort((a,b)=>a.d-b.d);
     for(const {j} of near.slice(0,p.cloud?4:2)){const a=Math.min(i,j),b=Math.max(i,j),key=a+':'+b;if(!seen.has(key)){seen.add(key);edges.push([a,b]);}}
   }
-  const anchors=meshData.anchors.map(p=>({x:p[0],y:p[1],z:p[2]+.025}));
+  const anchors=electrodeAnchors();
+  let activeElectrode=anchors.find(a=>a.name==='Cz');
+  let labelLayout=[],labelViewKey='';
   const stars=Array.from({length:65},()=>({x:rand(),y:rand(),r:.3+rand()*.8,p:rand()*6.3}));
   let W=0,H=0,DPR=1,mobile=false,base=1,cx=0,cy=0;
   let state='idle',started=0,pausedAt=0,frame=0,epoch=performance.now(),timelineStarted=false;
   let yaw=-.20,pitch=0,frozenYaw=0,frozenPitch=0;
   let pan={x:0,y:0},velocity={x:0,y:0},drag=null,motionMode='rotate',suppressClickUntil=0,lastRender=0;
-  let projected=[],currentCore={x:0,y:0},startCore={x:0,y:0};
+  let projected=[],startCore={x:0,y:0};
   function resize(){
     W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);mobile=W<=680;
     cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -166,14 +171,24 @@ import { initTimeline } from './timeline.js';
       if(i%47===0&&light>.5)glow(p.x,p.y,7,'rgba(130,186,255,.35)',alpha);
     }
     if(!flying){
-      const els=[hit,leftHit,rightHit];
-      anchors.forEach((a,i)=>{const p=project(a,ry,rx);els[i].style.left=p.x+'px';els[i].style.top=p.y+'px';els[i].style.visibility=Math.cos(ry)>.12?'visible':'hidden';if(i===0)currentCore=p;});
-      const core=project(anchors[0],ry,rx);
-      if(Math.cos(ry)>.12){
-        ctx.strokeStyle='rgba(238,195,115,.24)';ctx.lineWidth=.7;ctx.beginPath();
-        for(const a of [anchors[1],anchors[2]]){const p=project(a,ry,rx);ctx.moveTo(core.x,core.y);ctx.lineTo(p.x,p.y);}ctx.stroke();glow(core.x,core.y,26,'rgba(244,193,99,.15)');
+      const viewKey=[ry.toFixed(4),rx.toFixed(4),pan.x.toFixed(2),pan.y.toFixed(2),W,H].join(':');
+      if(viewKey!==labelViewKey){
+        labelLayout=layoutElectrodeLabels(anchors.map(a=>({...project(a,ry,rx),name:a.name})),W,H);
+        labelViewKey=viewKey;
       }
-    }else if(elapsed<1800){const core=project(anchors[0],ry,rx,zoom,shift);glow(core.x,core.y,30+z*90,'rgba(247,201,118,.35)',1-smooth(elapsed/1800));}
+      for(const site of labelLayout){
+        const button=buttonByName.get(site.name);
+        button.style.left=site.labelX+'px';button.style.top=site.labelY+'px';
+        button.dataset.positioned='true';
+        button.dataset.depth=site.z<-.05?'far':'near';
+        const focused=button.matches(':hover, :focus-visible');
+        const strength=focused?1:site.z<-.05?.42:.82;
+        ctx.strokeStyle=`rgba(145,205,248,${strength*.5})`;ctx.lineWidth=focused?1.2:.65;
+        ctx.beginPath();ctx.moveTo(site.x,site.y);ctx.lineTo(site.labelX,site.labelY);ctx.stroke();
+        glow(site.x,site.y,focused?18:9,'rgba(146,211,255,.5)',strength);
+        ctx.fillStyle=focused?'#ffe5a3':'#d9f0ff';ctx.beginPath();ctx.arc(site.x,site.y,focused?3.8:2.4,0,Math.PI*2);ctx.fill();
+      }
+    }else if(elapsed<1800){const core=project(activeElectrode,ry,rx,zoom,shift);glow(core.x,core.y,30+z*90,'rgba(247,201,118,.35)',1-smooth(elapsed/1800));}
   }
   function drawWave(t,e){
     const appear=smooth((e-1700)/950);if(appear<=0)return;
@@ -192,7 +207,7 @@ import { initTimeline } from './timeline.js';
     document.querySelectorAll('.step').forEach((el,i)=>el.classList.toggle('active',i===phase));
     $('transition-progress').style.width=clamp(e/5400)*100+'%';
     const show=e>1400&&e<4600;$('transition-copy').classList.toggle('visible',show);
-    const labels=phase===2?['MODEL EVOLUTION','沿着信号，走进研究。','从 SVM 到 Bi-Mamba，探索模型如何理解脑电']:['NEURAL SIGNAL','神经活动，在时间中显现。','从一次节点激活，汇聚成一段脑电信号'];
+    const labels=phase===2?['MODEL EVOLUTION','沿着信号，走进研究。','从 SVM 到 Bi-Mamba，探索模型如何理解脑电']:['NEURAL SIGNAL','神经活动，在时间中显现。',`从 ${activeElectrode.name} 电极激活，汇聚成一段脑电信号`];
     $('transition-kicker').textContent=labels[0];$('transition-title').textContent=labels[1];$('transition-sub').textContent=labels[2];
   }
   function render(t){
@@ -222,17 +237,19 @@ import { initTimeline } from './timeline.js';
     document.body.classList.remove('intro-open');$('replay-intro').hidden=false;
     const next=$('next');if(next)next.focus({preventScroll:true});
   }
-  function activate(){
-    if(state!=='idle'||performance.now()<suppressClickUntil)return;if(reduce){intro.classList.add('finished');complete();return;}
+  function activate(event){
+    if(state!=='idle'||performance.now()<suppressClickUntil)return;
+    activeElectrode=anchors.find(a=>a.name===event?.currentTarget?.dataset?.eeg)||anchors.find(a=>a.name==='Cz');
+    if(reduce){intro.classList.add('finished');complete();return;}
     velocity={x:0,y:0};drag=null;intro.classList.remove('dragging');
     state='running';started=performance.now();frozenYaw=yaw;frozenPitch=pitch;
-    const a=project(anchors[0],yaw,pitch);startCore={x:a.x-cx-pan.x,y:a.y-cy-pan.y};
+    const a=project(activeElectrode,yaw,pitch);startCore={x:a.x-cx-pan.x,y:a.y-cy-pan.y};
     intro.classList.add('running');intro.setAttribute('aria-label','神经网络正在过渡到脑电时间线');
-    [hit,leftHit,rightHit,$('enter-intro')].forEach(b=>b.disabled=true);
+    activationControls.forEach(b=>b.disabled=true);
     // When replaying, return the preserved timeline camera to its first generation.
     window.dispatchEvent(new CustomEvent('weegoto:timeline-reset'));
   }
-  [hit,leftHit,rightHit,$('enter-intro')].forEach(b=>b.addEventListener('click',activate));
+  activationControls.forEach(b=>b.addEventListener('click',activate));
   $('skip-intro').addEventListener('click',()=>{intro.classList.add('finished');complete();});
   $('replay-intro').addEventListener('click',()=>{
     $('tl').inert=true;$('tl').setAttribute('aria-hidden','true');
@@ -240,7 +257,7 @@ import { initTimeline } from './timeline.js';
     intro.hidden=false;intro.inert=false;intro.classList.remove('finished','running');intro.setAttribute('aria-label','神经节点交互开场');
     $('replay-intro').hidden=true;$('transition-copy').classList.remove('visible');$('transition-progress').style.width='0%';
     document.querySelectorAll('.step').forEach((el,i)=>el.classList.toggle('active',i===0));
-    [hit,leftHit,rightHit,$('enter-intro')].forEach(b=>b.disabled=false);
+    activationControls.forEach(b=>b.disabled=false);
     state='idle';epoch=performance.now();startCore={x:0,y:0};resetView();lastRender=0;
     window.dispatchEvent(new CustomEvent('weegoto:timeline-reset'));
     frame=requestAnimationFrame(render);$('enter-intro').focus({preventScroll:true});
@@ -250,7 +267,7 @@ import { initTimeline } from './timeline.js';
   document.querySelectorAll('[data-motion]').forEach(button=>button.addEventListener('click',()=>{
     motionMode=button.dataset.motion;velocity={x:0,y:0};
     document.querySelectorAll('[data-motion]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    $('drag-hint').textContent=motionMode==='rotate'?'左键拖动旋转 · Shift + 左键平移 · 点击光点进入':'左键拖动移动 · 点击「旋转」切换 · 点击光点进入';
+    $('drag-hint').textContent=motionMode==='rotate'?'拖动旋转 · Shift 拖动平移 · 点击任一 EEG 点进入':'拖动平移 · 点击「旋转」切换 · 任一 EEG 点均可进入';
     intro.dataset.motion=motionMode;
   }));
   intro.addEventListener('pointerdown',e=>{
@@ -281,6 +298,12 @@ import { initTimeline } from './timeline.js';
   intro.addEventListener('pointerup',endDrag);intro.addEventListener('pointercancel',e=>{velocity={x:0,y:0};endDrag(e)});
   intro.addEventListener('lostpointercapture',endDrag);
   window.addEventListener('blur',()=>{drag=null;velocity={x:0,y:0};intro.classList.remove('dragging');});
+  cv.addEventListener('click',event=>{
+    if(state!=='idle'||performance.now()<suppressClickUntil)return;
+    const rect=cv.getBoundingClientRect(),x=(event.clientX-rect.left)*W/rect.width,y=(event.clientY-rect.top)*H/rect.height;
+    const closest=anchors.map(a=>{const p=project(a,yaw,pitch);return {name:a.name,distance:Math.hypot(p.x-x,p.y-y)};}).sort((a,b)=>a.distance-b.distance)[0];
+    if(closest&&closest.distance<=(mobile?18:12))activate({currentTarget:buttonByName.get(closest.name)});
+  });
   cv.addEventListener('dblclick',resetView);
   // Block the timeline's document-level input handlers throughout the opening scene.
   for(const event of ['wheel','touchstart','touchend','keydown'])window.addEventListener(event,e=>{
