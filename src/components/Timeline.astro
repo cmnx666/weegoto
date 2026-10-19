@@ -58,7 +58,8 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   <!-- 图例 -->
   <div class="legend">
     <div class="t">图例 · LEGEND</div>
-    <div class="row"><span class="sw big"></span>模型路线（8）</div>
+    <div class="row"><span class="sw completed"></span>已完成 · SVM</div>
+    <div class="row"><span class="sw planned"></span>待开展 · 后续 7 个模型</div>
     <div class="row"><span class="sw rep"></span>已发布进展</div>
     <div class="row"><span class="sw note"></span>心得分享</div>
     <div class="row"><span class="sw line"></span>隶属连线</div>
@@ -78,6 +79,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
         <span class="gen" id="c-gen">GEN 1</span>
         <h2 id="c-name">SVM</h2>
         <span class="cn" id="c-cn">支持向量机</span>
+        <span class="model-status" id="c-status" data-status="completed">已完成</span>
       </div>
       <p class="one" id="c-one"></p>
       <div class="body" id="c-body"></div>
@@ -122,6 +124,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
               <span class="gen" id="d-gen">GEN 1</span>
               <h2 id="d-name">SVM</h2>
               <span class="cn" id="d-cn">支持向量机</span>
+              <span class="model-status" id="d-status" data-status="completed">已完成</span>
             </header>
             <p class="d-one" id="d-one"></p>
             <div class="d-cols">
@@ -207,6 +210,12 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   #tl .legend .row { display: flex; align-items: center; gap: 9px;
     font-size: 12.5px; color: var(--tl-ink2); }
   #tl .legend .sw { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  #tl .legend .sw.completed { background: #6ee7b7; border: 2px solid #6ee7b7; }
+  #tl .legend .sw.planned { background: transparent; border: 2px dashed #9296b2; }
+  #tl .model-status { font-size: 11px; font-weight: 500; line-height: 1.5;
+    padding: 2px 9px; border: 1px dashed #9296b2; border-radius: 20px; color: #b2b6cc; }
+  #tl .model-status[data-status="completed"] { color: #6ee7b7; border-style: solid;
+    border-color: #6ee7b766; background: #6ee7b70d; }
   #tl .legend .sw.big { width: 14px; height: 14px; background: #0b0718;
     border: 2.5px solid var(--tl-vi); }
   #tl .legend .sw.rep { background: var(--tl-am); box-shadow: 0 0 7px var(--tl-am); }

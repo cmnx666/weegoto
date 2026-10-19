@@ -1,4 +1,5 @@
 import { buildPrelude, adjacentTimelineStop, PRELUDE_STYLE } from '../lib/timeline-prelude.mjs';
+import { modelProgress } from '../lib/model-progress.mjs';
 /** Existing homepage timeline. Initialized once, after the brain opening finishes. */
 let initialized = false;
 export function initTimeline() {
@@ -15,7 +16,7 @@ export function initTimeline() {
             '代价是<b>特征必须由人设计</b> —— 95 维 PSD 把 2 秒的时间结构整个平均掉了。'],
       gain:'小样本、高维特征下非常稳；有最大间隔的理论保证、可解释、训练快。',
       cost:'特征必须由人设计。95 维 PSD 把 2 秒的时间结构整个平均掉了 —— 模型从头到尾没「看见」过时间。',
-      eeg:'就是我们现在做的事：手工频带功率 + RBF 核 SVM，被试级分组评估；历史结果与当前版本来源见资源页，不作诊断能力解释。',
+      eeg:'已完成第一阶段项目：手工频带功率 + RBF 核 SVM，被试级分组评估；历史结果与当前版本来源见资源页，不作诊断能力解释。',
       tags:['手工特征','核技巧','最大间隔'],
       arts:[]},
 
@@ -358,23 +359,32 @@ export function initTimeline() {
 
   /* ---- 世代大节点 ---- */
   const nodeEls = GENS.map((g, i) => {
+    const progress = modelProgress(g.gen);
     const x = NODE_X[i], y = NODE_Y[i];
     const grp = document.createElementNS(NS,'g');
     grp.style.cursor = 'pointer';
     grp.setAttribute('role','button'); grp.setAttribute('tabindex','0');
-    grp.setAttribute('aria-label',`${g.model}：打开模型详情`);
+    grp.setAttribute('aria-label',`${g.model} · ${progress.label}：打开模型详情`);
+    grp.dataset.status = progress.key;
     grp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openDetail(i);}});
     const halo = document.createElementNS(NS,'circle');
     halo.setAttribute('cx',x); halo.setAttribute('cy',y); halo.setAttribute('r','18');
-    halo.setAttribute('fill','none'); halo.setAttribute('stroke', g.color);
+    halo.setAttribute('fill','none'); halo.setAttribute('stroke', progress.color);
     halo.setAttribute('stroke-width','1'); halo.setAttribute('opacity','0');
     const c1 = document.createElementNS(NS,'circle');
     c1.setAttribute('cx',x); c1.setAttribute('cy',y); c1.setAttribute('r','11');
-    c1.setAttribute('fill','#0b0718'); c1.setAttribute('stroke', g.color); c1.setAttribute('stroke-width','3');
+    c1.setAttribute('fill','#0b0718'); c1.setAttribute('stroke', progress.color); c1.setAttribute('stroke-width','3');
+    c1.setAttribute('stroke-dasharray', progress.dash);
     const c2 = document.createElementNS(NS,'circle');
     c2.setAttribute('cx',x); c2.setAttribute('cy',y); c2.setAttribute('r','4.5');
-    c2.setAttribute('fill', g.color);
+    c2.setAttribute('fill', progress.key === 'completed' ? progress.color : 'none');
     grp.append(halo, c1, c2);
+    const status = document.createElementNS(NS,'text');
+    status.setAttribute('x',x); status.setAttribute('y',y + 39);
+    status.setAttribute('text-anchor','middle'); status.setAttribute('fill',progress.color);
+    status.setAttribute('font-size','11'); status.setAttribute('pointer-events','none');
+    status.textContent = progress.key === 'completed' ? '✓ 已完成' : progress.label;
+    grp.appendChild(status);
     const hit = document.createElementNS(NS,'circle');
     hit.setAttribute('cx',x); hit.setAttribute('cy',y); hit.setAttribute('r','30');
     hit.setAttribute('fill','transparent'); grp.appendChild(hit);
@@ -436,6 +446,7 @@ export function initTimeline() {
   let nearest = -1;
 
   const C = {
+    status: document.getElementById('c-status'),
     accent: document.getElementById('c-accent'), gen: document.getElementById('c-gen'),
     name: document.getElementById('c-name'),     cn: document.getElementById('c-cn'),
     one: document.getElementById('c-one'),       body: document.getElementById('c-body'),
@@ -474,6 +485,8 @@ export function initTimeline() {
   const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   function fillCard(i) {
     const g = GENS[i];
+    C.status.textContent = modelProgress(g.gen).label;
+    C.status.dataset.status = modelProgress(g.gen).key;
     C.accent.style.background = g.color;
     C.gen.textContent = 'GEN ' + g.gen; C.gen.style.color = g.color;
     C.name.textContent = g.model; C.cn.textContent = g.cn;
@@ -594,6 +607,7 @@ export function initTimeline() {
      ===================================================================== */
   const detail = document.getElementById('detail');
   const D = {
+    status: document.getElementById('d-status'),
     accent: document.getElementById('d-accent'), gen: document.getElementById('d-gen'),
     name: document.getElementById('d-name'),     cn: document.getElementById('d-cn'),
     one: document.getElementById('d-one'),       gain: document.getElementById('d-gain'),
@@ -606,6 +620,8 @@ export function initTimeline() {
 
   function dFill(i) {
     const g = GENS[i];
+    D.status.textContent = modelProgress(g.gen).label;
+    D.status.dataset.status = modelProgress(g.gen).key;
     D.accent.style.background = g.color;
     D.gen.textContent = 'GEN ' + g.gen; D.gen.style.color = g.color;
     D.name.textContent = g.model; D.cn.textContent = g.cn;
