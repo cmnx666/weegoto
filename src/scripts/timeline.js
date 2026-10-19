@@ -1,3 +1,4 @@
+import { buildPrelude, adjacentTimelineStop, PRELUDE_STYLE } from '../lib/timeline-prelude.mjs';
 /** Existing homepage timeline. Initialized once, after the brain opening finishes. */
 let initialized = false;
 export function initTimeline() {
@@ -206,7 +207,23 @@ export function initTimeline() {
     NODE_PEAK.push(PTS[best].y < CENTER_Y);
   });
   const nodeProg = (i) => NODE_PROG[i];
-  const PROG_MIN = NODE_PROG[0], PROG_MAX = NODE_PROG[NODE_PROG.length-1];
+  const prelude=buildPrelude(published,NODE_X[0],PTS);
+  const timelineStops=[...prelude.map(a=>a.x/WAVE_X1),...NODE_PROG];
+  const PROG_MIN = timelineStops[0], PROG_MAX = NODE_PROG[NODE_PROG.length-1];
+  prelude.forEach((article,index)=>{
+    const link=document.createElementNS(NS,'a');
+    link.setAttribute('href',article.href);link.setAttribute('class','prelude-node');
+    link.setAttribute('aria-label',`${article.label}，${article.date}，阅读记录`);
+    link.setAttribute('transform',`translate(${article.x},${article.y})`);
+    const title=document.createElementNS(NS,'title');title.textContent=`${article.title} · ${article.date}`;
+    const hit=document.createElementNS(NS,'circle');hit.setAttribute('r','15');hit.setAttribute('fill','transparent');hit.setAttribute('class','prelude-hit');
+    const dot=document.createElementNS(NS,'circle');dot.setAttribute('r',String(PRELUDE_STYLE.radius));dot.setAttribute('class','prelude-dot');
+    const name=document.createElementNS(NS,'text');name.textContent=article.label;
+    name.setAttribute('text-anchor','middle');name.setAttribute('y',index%2?'-30':'26');name.setAttribute('class','prelude-label');
+    const date=document.createElementNS(NS,'text');date.textContent=article.date;
+    date.setAttribute('text-anchor','middle');date.setAttribute('y',index%2?'-16':'40');date.setAttribute('class','prelude-date');
+    link.append(title,hit,dot,name,date);waveG.appendChild(link);
+  });
 
   /* ---- 频带分隔 + 标注（复刻电磁波谱图的「频段竖线 + 标注」） ---- */
   const BAND_DEF = [
@@ -400,6 +417,10 @@ export function initTimeline() {
   mmWave.setAttribute('d', dPath); mmWave.setAttribute('fill','none');
   mmWave.setAttribute('stroke','url(#wg)'); mmWave.setAttribute('stroke-width','1.5');
   mmG.appendChild(mmWave); mm.appendChild(mmG);
+  for(const article of prelude){
+    const marker=document.createElementNS(NS,'circle');marker.setAttribute('cx',ox+article.x*sx);marker.setAttribute('cy',oy+(article.y-CENTER_Y)*sy);
+    marker.setAttribute('r','1.25');marker.setAttribute('fill','#929ab0');marker.setAttribute('opacity','.5');mm.appendChild(marker);
+  }
   const mmDot = document.createElementNS(NS,'circle');
   mmDot.setAttribute('r','3.2'); mmDot.setAttribute('fill','#fbbf24');
   mm.appendChild(mmDot);
@@ -411,7 +432,7 @@ export function initTimeline() {
   const MAX_VEL = 0.30, JUMP_SPEED = 0.32;
   const EPS_ACTIVE = 0.004, EPS_IDLE = 0.010, IDLE_MS = 300;
 
-  let prog = PROG_MIN, vel = 0, jumpTarget = null, lastWheel = -1e9, lastT = 0;
+  let prog = nodeProg(0), vel = 0, jumpTarget = null, lastWheel = -1e9, lastT = 0;
   let nearest = -1;
 
   const C = {
@@ -485,6 +506,12 @@ export function initTimeline() {
   function apply() {
     const idx = Math.max(0, Math.min(NP, Math.round(prog * NP)));
     const p = PTS[idx];
+    const early=prog<nodeProg(0)-.005;
+    dotHalo.setAttribute('r',early?'6':'20');
+    dotRing.setAttribute('r',early?'4':'12');
+    dotRing.setAttribute('opacity',early?'.4':'1');
+    dotCore.setAttribute('r',early?'2':'5.5');
+    dotCore.setAttribute('style',early?'filter:none':'filter:drop-shadow(0 0 10px rgba(251,191,36,.95))');
     dotG.setAttribute('transform', `translate(${p.x},${p.y})`);
     waveG.setAttribute('transform', `translate(${CENTER_X - p.x},0)`);
     mmDot.setAttribute('cx', ox + p.x*sx);
@@ -536,12 +563,12 @@ export function initTimeline() {
   }, { passive: false });
 
   document.getElementById('next').onclick = () => {
-    vel = 0; jumpTarget = Math.min(PROG_MAX, nodeProg(Math.min(7, nearest+1)));
+    vel = 0; jumpTarget = adjacentTimelineStop(timelineStops,prog,1);
     if(satReduced) { prog = jumpTarget; jumpTarget = null; apply(); }
     resumeLoop();
   };
   document.getElementById('prev').onclick = () => {
-    vel = 0; jumpTarget = Math.max(PROG_MIN, nodeProg(Math.max(0, nearest-1)));
+    vel = 0; jumpTarget = adjacentTimelineStop(timelineStops,prog,-1);
     if(satReduced) { prog = jumpTarget; jumpTarget = null; apply(); }
     resumeLoop();
   };
@@ -664,7 +691,7 @@ export function initTimeline() {
   /* 初始化 */
   apply(); fillCard(0);
   window.addEventListener('weegoto:timeline-reset', () => {
-    closeDetail(); prog = PROG_MIN; vel = 0; jumpTarget = null; apply(); fillCard(0);
+    closeDetail(); prog = nodeProg(0); vel = 0; jumpTarget = null; apply(); fillCard(0);
   });
 
   /* 便于分享定位：?gen=3 直接跳到第 3 代 */

@@ -17,7 +17,7 @@
  */
 import { NAV, SECTION_KEYS } from '../consts';
 import { getCollection } from 'astro:content';
-const published = (await Promise.all(SECTION_KEYS.map(async section => (await getCollection(section, ({ data }) => !data.draft)).map(post => ({ title: post.data.title, s: post.data.title, t: section === 'progress' ? 'rep' : 'note', date: post.data.date.toISOString().slice(0, 10), href: `/${section}/${post.id}/`, generation: section === 'outlook' ? 8 : 1 }))))).flat();
+const published = (await Promise.all(SECTION_KEYS.map(async section => (await getCollection(section, ({ data }) => !data.draft)).map(post => ({ title: post.data.title, s: post.data.title, t: section === 'progress' ? 'rep' : 'note', date: post.data.date.toISOString().slice(0, 10), href: `/${section}/${post.id}/`, generation: post.data.timelinePhase === 'pre-svm' ? 0 : section === 'outlook' ? 8 : 1, timelinePhase: post.data.timelinePhase, label: post.data.timelineLabel ?? post.data.title }))))).flat();
 
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
@@ -63,6 +63,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     <div class="row"><span class="sw note"></span>心得分享</div>
     <div class="row"><span class="sw line"></span>隶属连线</div>
     <div class="hint">悬停大节点 → 显现其知识图谱</div>
+    <div class="hint2">SVM 前的小节点 · 项目成立与组会记录</div>
     <div class="hint2">模型路线仅作学习导航，不代表性能排名</div>
   </div>
 
@@ -92,8 +93,8 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     <div class="scrollhint"><span class="wheel"></span>滚轮 → 沿光谱前进</div>
     <div class="pageinfo">GEN <b id="pg">1</b> / 8</div>
     <div class="navbtns">
-      <button class="nbtn prev" id="prev">‹ 上一页</button>
-      <button class="nbtn next" id="next">下一页 ›</button>
+      <button class="nbtn prev" id="prev">‹ 上一节点</button>
+      <button class="nbtn next" id="next">下一节点 ›</button>
     </div>
   </div>
 
@@ -223,6 +224,14 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   #tl .sat text { pointer-events: none; }
   #tl .satlink { pointer-events: none; }
 
+  /* Early milestones stay smaller and dimmer than the model nodes. */
+  #tl .prelude-node .prelude-dot { fill:#9095b2; opacity:.52; }
+  #tl .prelude-node .prelude-label { fill:#8e91aa; font-size:10px; font-weight:500; }
+  #tl .prelude-node .prelude-date { fill:#737990; font-size:8px; }
+  #tl .prelude-node:hover .prelude-dot, #tl .prelude-node:focus-visible .prelude-dot { opacity:1; }
+  #tl .prelude-node:hover .prelude-label, #tl .prelude-node:focus-visible .prelude-label { fill:#d0d5e4; }
+  #tl .prelude-node:focus-visible { outline:none; }
+  #tl .prelude-node:focus-visible .prelude-hit { stroke:#aab5c9; stroke-width:1; }
   /* ---------- 简介卡（随峰谷翻面） ---------- */
   #tl .card-wrap { position: fixed; left: 0; right: 0; top: 0; z-index: 10;
     transition: transform .55s cubic-bezier(.2,.85,.25,1); }

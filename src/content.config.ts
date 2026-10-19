@@ -8,6 +8,8 @@ const articleSchema = z.object({
   date: z.coerce.date(),
   tags: z.array(z.string()).default([]),
   draft: z.boolean().default(false),
+  timelinePhase: z.enum(['pre-svm']).optional(),
+  timelineLabel: z.string().max(12).optional(),
 
   // ---- 访客投稿相关（团队自撰的文章留空即可）----
   /** 投稿者署名。留空表示由项目组撰写 */
