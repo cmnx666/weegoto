@@ -7,6 +7,13 @@ import { initTimeline } from './timeline.js';
   const $ = id => document.getElementById(id);
   const cv=$('brain-canvas'),ctx=cv.getContext('2d'),intro=$('intro');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    initTimeline();
+    document.body.classList.add('timeline-visible');document.body.classList.remove('intro-open');
+    $('tl').inert=false;$('tl').removeAttribute('aria-hidden');
+    intro.hidden=true;intro.inert=true;
+    return;
+  }
   const hit=$('core-hit'),leftHit=$('core-hit-left'),rightHit=$('core-hit-right');
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
   const smooth=(x)=>{x=clamp(x);return x*x*(3-2*x)};

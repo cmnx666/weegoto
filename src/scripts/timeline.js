@@ -110,7 +110,10 @@ export function initTimeline() {
       vx:(Math.random()-.5)*.16, vy:(Math.random()-.5)*.16, r:1.3+Math.random()*1.8, ph:Math.random()*6.3 })); }
     addEventListener('resize', () => { rs(); init(); });
     rs(); init();
-    (function draw(t){
+    let backgroundFrame = 0;
+    function draw(t){
+      backgroundFrame = 0;
+      if(document.hidden || !document.body.classList.contains('timeline-visible')) return;
       t /= 1000; ctx.clearRect(0,0,W,H);
       if(!reduced) for(const n of nodes){ n.x+=n.vx; n.y+=n.vy;
         if(n.x<-20)n.x=W+20; if(n.x>W+20)n.x=-20; if(n.y<-20)n.y=H+20; if(n.y>H+20)n.y=-20; }
@@ -121,8 +124,12 @@ export function initTimeline() {
       for(const n of nodes){ const r=n.r*(1+.28*Math.sin(t*1.6+n.ph));
         ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fillStyle='rgba(196,181,253,.6)';
         ctx.shadowColor='rgba(167,139,250,.65)'; ctx.shadowBlur=7; ctx.fill(); ctx.shadowBlur=0; }
-      if(!reduced) requestAnimationFrame(draw);
-    })(0);
+      if(!reduced) backgroundFrame=requestAnimationFrame(draw);
+    }
+    const resumeBackground=()=>{if(!backgroundFrame&&!document.hidden&&document.body.classList.contains('timeline-visible')) {if(reduced)draw(0);else backgroundFrame=requestAnimationFrame(draw);}};
+    document.addEventListener('visibilitychange',resumeBackground);
+    new MutationObserver(resumeBackground).observe(document.body,{attributes:true,attributeFilter:['class']});
+    resumeBackground();
   })();
 
   /* =====================================================================
@@ -295,6 +302,7 @@ export function initTimeline() {
     if (hoverGen === gi) return;
     hoverGen = gi;
     for (const s of satEls) s.target = (s.genIndex === gi) ? 1 : 0;
+    resumeLoop();
     nodeEls.forEach((n, j) => {
       n.halo.setAttribute('opacity',
         j === gi ? '.8' : (j === nearest ? '.55' : '0'));
@@ -355,7 +363,7 @@ export function initTimeline() {
     hit.setAttribute('fill','transparent'); grp.appendChild(hit);
     waveG.appendChild(grp);
     grp.addEventListener('click', () => {
-      if (nearest === i) openDetail(); else { vel = 0; jumpTarget = nodeProg(i); }
+      if (nearest === i) openDetail(); else { vel = 0; jumpTarget = nodeProg(i); resumeLoop(); }
     });
     grp.addEventListener('mouseenter', () => setHover(i));
     grp.addEventListener('mouseleave', () => setHover(-1));
@@ -508,7 +516,7 @@ export function initTimeline() {
       if (prog > PROG_MAX) { prog = PROG_MAX; vel = 0; jumpTarget = null; }
       apply();
     }
-    loopFrame = (!satReduced || jumpTarget !== null || vel !== 0) ? requestAnimationFrame(loop) : 0;
+    loopFrame = ((!satReduced && satEls.some(s => s.target > 0 || s.rev > .02)) || jumpTarget !== null || vel !== 0) ? requestAnimationFrame(loop) : 0;
   }
   const resumeLoop = () => { if(!loopFrame && !document.hidden && document.body.classList.contains('timeline-visible')) { lastT = 0; loopFrame = requestAnimationFrame(loop); } };
   document.addEventListener('visibilitychange', resumeLoop);
@@ -551,7 +559,7 @@ export function initTimeline() {
   addEventListener('touchend', (e) => {
     if (detail.classList.contains('open') || tx0 === null) return;
     const dx = e.changedTouches[0].clientX - tx0; tx0 = null;
-    if (Math.abs(dx) > 40) { vel += (dx < 0 ? 1 : -1)*0.16; vel = Math.max(-MAX_VEL, Math.min(MAX_VEL, vel)); }
+    if (Math.abs(dx) > 40) { vel += (dx < 0 ? 1 : -1)*0.16; vel = Math.max(-MAX_VEL, Math.min(MAX_VEL, vel)); resumeLoop(); }
   }, { passive: true });
 
   /* =====================================================================
@@ -611,7 +619,7 @@ export function initTimeline() {
   const background = [...document.getElementById('tl').children].filter(e => e !== detail);
   function openDetail(force) {
     const i = (typeof force === 'number') ? force : nearest;
-    if (i !== nearest) { nearest = i; fillCard(i); vel = 0; jumpTarget = nodeProg(i); }
+    if (i !== nearest) { nearest = i; fillCard(i); vel = 0; jumpTarget = nodeProg(i); resumeLoop(); }
     previousFocus = document.activeElement; document.body.classList.add('detail-open');
     background.forEach(e => e.inert = true);
     const reader = document.querySelector('.reading-entry'); if(reader) reader.inert = true;
