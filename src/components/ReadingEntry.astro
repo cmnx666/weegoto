@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import { SECTION_KEYS, SECTIONS } from '../consts';
+const articles = (await Promise.all(SECTION_KEYS.map(async section => {
+  const posts = await getCollection(section, ({ data }) => !data.draft);
+  return posts.map(post => ({ title: post.data.title, href: `/${section}/${post.id}/`, section: SECTIONS[section].label }));
+}))).flat();
+---
+<details class="reading-entry">
+  <summary>直接阅读项目内容</summary>
+  <nav aria-label="普通阅读入口">
+    <a href="/progress/">项目进展</a><a href="/notes/">心得分享</a>
+    <a href="/outlook/">未来展望</a><a href="/resources/">资源与结果来源</a>
+    <a href="/about/">关于我们</a>
+  </nav>
+  <p>当前完成 SVM 基线与批次混杂检查。深度模型属于后续规划，研究结果不作临床诊断依据。</p>
+  <ul>{articles.map(a => <li><a href={a.href}>{a.title}</a> <small>· {a.section}</small></li>)}</ul>
+</details>
+<style>
+.reading-entry{position:fixed;left:20px;bottom:18px;z-index:250;max-width:min(600px,calc(100vw - 40px));max-height:70vh;overflow:auto;background:#0b1626f5;color:#e8f2fa;border:1px solid #78aad266;border-radius:12px;padding:10px 16px;font-size:14px;box-shadow:0 8px 30px #0005}
+:global(body.detail-open) .reading-entry{visibility:hidden}summary{cursor:pointer;font-weight:700;list-style:revert}.reading-entry[open]{padding:16px 20px}.reading-entry nav{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}.reading-entry a{color:#c6e4ff;text-decoration:underline;text-underline-offset:4px}.reading-entry p{max-width:52ch;font-size:13px}.reading-entry li{margin:8px 0}.reading-entry small{color:#aabccc}
+@media(max-width:680px){.reading-entry{bottom:auto;top:72px;left:12px;max-width:calc(100vw - 24px);font-size:12px}}
+</style>

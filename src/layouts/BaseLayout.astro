@@ -11,9 +11,11 @@ interface Props {
   description?: string;
   /** 裸布局：不渲染 Header / Footer，也不套 .container（供全屏页面使用） */
   bare?: boolean;
+  articleDate?: Date;
+  author?: string;
 }
 
-const { title, description = SITE.description, bare = false } = Astro.props;
+const { title, description = SITE.description, bare = false, articleDate, author = SITE.author } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.shortTitle}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com').href;
 ---
@@ -30,7 +32,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://example.com
     <meta name="theme-color" content="#070512" />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={articleDate ? "article" : "website"} />
+    {articleDate && <meta property="article:published_time" content={articleDate.toISOString()} />}
+    {articleDate && <meta name="author" content={author} />}
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta property="og:image" content={new URL('/share.png', Astro.site).href} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />

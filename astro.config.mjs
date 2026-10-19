@@ -8,6 +8,12 @@ export const SITE_URL = 'https://weegoto.top';
 export default defineConfig({
   site: SITE_URL,
   integrations: [sitemap()],
+  security: {
+    csp: {
+      directives: ["base-uri 'self'", "object-src 'none'", "form-action https://github.com"],
+      styleDirective: { resources: [{ resource: "'self'", kind: 'element' }, { resource: "'unsafe-inline'", kind: 'attribute' }] },
+    },
+  },
   markdown: {
     // V2 是深色主题，代码块必须用深色高亮，否则会出现刺眼的白块
     shikiConfig: { theme: 'github-dark', wrap: true },

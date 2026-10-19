@@ -129,6 +129,7 @@
     if (!cur || !tag || !dot || !shape || cc.some((c) => !c)) return;
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
 
     const DOT_R = 5;   // 默认小圆半径
     const PAD = 0;     // 零间隙：选框 = 元素精确边框
@@ -208,7 +209,9 @@
       });
     });
 
+    let cursorFrame = 0;
     function frame() {
+      if(document.hidden || document.body.classList.contains('intro-open')) { cursorFrame=0; return; }
       let tx: number, ty: number, tw: number, th: number;
 
       if (target) {
@@ -257,11 +260,14 @@
         tag!.style.top = (R.y - 30) + 'px';
       }
 
-      requestAnimationFrame(frame);
+      cursorFrame=requestAnimationFrame(frame);
     }
 
     // 脚本一切就绪，这时才隐藏原生光标
     document.documentElement.classList.add('has-custom-cursor');
-    requestAnimationFrame(frame);
+    const resumeCursor=()=>{if(!cursorFrame&&!document.hidden&&!document.body.classList.contains('intro-open')) cursorFrame=requestAnimationFrame(frame);};
+    document.addEventListener('visibilitychange',resumeCursor);
+    new MutationObserver(resumeCursor).observe(document.body,{attributes:true,attributeFilter:['class']});
+    resumeCursor();
   })();
 </script>

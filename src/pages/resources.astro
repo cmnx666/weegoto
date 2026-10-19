@@ -1,51 +1,33 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+import research from '../research-results.json';
+const percent = (n: number) => `${(n * 100).toFixed(2)}%`;
 ---
-
-<BaseLayout title="资源" description="代码仓库、汇报材料、图表与学习路线。">
-  <div class="section-head">
-    <div class="en">Resources</div>
-    <h1>资源</h1>
-    <p>项目产出的代码、材料与学习笔记。表格里的链接请替换成你们自己的地址。</p>
-  </div>
-
+<BaseLayout title="资源与结果来源" description="项目代码、已发布材料与可追溯的历史实验结果。">
+  <div class="section-head"><div class="en">Resources</div><h1>资源与结果来源</h1><p>区分已公开的内容、历史实验快照和后续计划。</p></div>
   <div class="prose">
-    <h2>代码与数据</h2>
-    <div class="callout warn">
-      <strong>仓库暂不公开 / 待整理</strong>
-      公开前请务必确认：<code>data/</code>、<code>results/</code>、<code>*.fif</code>、<code>*.edf</code>
-      以及含被试姓名的元数据文件<strong>都不在提交历史里</strong>。
-    </div>
+    <h2>可访问的项目资源</h2>
     <ul>
-      <li>代码仓库：<a href="https://github.com/">（待填写）</a></li>
-      <li>完整技术报告：<code>REPORT.md</code>（含去重日志与批次混杂证据）</li>
+      <li><a href={SITE.github}>网站源码与问题反馈</a>：网站代码仓库；研究代码与原始数据不包含在此仓库中。</li>
+      <li><a href="/progress/batch-confound/">批次混杂检查与历史实验说明</a></li>
+      <li><a href="/outlook/roadmap-svm-to-mamba/">从 SVM 到 Bi-Mamba 的学习与实验规划</a></li>
+      <li><a href="/notes/subject-level-cv/">被试级评估与数据泄漏</a> · <a href="/notes/mne-pitfalls/">MNE 预处理笔记</a></li>
     </ul>
-
-    <h2>汇报与材料</h2>
-    <ul>
-      <li>阶段汇报（通俗版）：项目汇报 PDF</li>
-      <li>模型演进谱系：从 SVM 到 Bi-Mamba</li>
-      <li>深度学习推进路线：知识地图与阶段规划</li>
-    </ul>
-
-    <h2>关键结果</h2>
-    <table>
-      <thead>
-        <tr><th>指标</th><th>数值</th><th>说明</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>被试级准确率</td><td>88.7%</td><td>95% CI 80.6–96.8</td></tr>
-        <tr><td>被试级 AUC</td><td>0.950</td><td>置换检验 p = 0.0099</td></tr>
-        <tr><td>敏感度 / 特异度</td><td>0.94 / 0.83</td><td>阈值 0.5</td></tr>
-        <tr><td>仅采集时间戳的 AUC</td><td>0.892</td><td><strong>完全不看脑电</strong></td></tr>
-        <tr><td>仅 1 个全局幅度标量的 AUC</td><td>0.817</td><td><strong>完全不看脑电</strong></td></tr>
-      </tbody>
-    </table>
-
-    <h2>学习资料</h2>
-    <ul>
-      <li>检索关键词：<code>Mamba EEG classification</code>、<code>bidirectional Mamba EEG</code>、<code>subject-wise cross validation EEG</code></li>
-      <li>纯 PyTorch 版 Mamba 实现：<a href="https://github.com/alxndrTL/mamba.py">mamba.py</a>（Windows 上无需编译 CUDA）</li>
-    </ul>
+    <p>完整技术报告与阶段汇报尚未整理为脱敏公开下载版。请通过仓库 Issues 提交资料需求，勿上传个人医疗信息。</p>
+    <h2 id="results">已有结果文件的版本对照</h2>
+    <div class="callout warn"><strong>结果仍在版本核对中，不作临床诊断依据。</strong>下表来自现存聚合 CSV 快照，复核日期 {research.reviewedAt}；本次没有重跑实验。各行不是一个“最终版本”的不同指标，不应跨行拼接；置信区间为原文件中的被试级 bootstrap 区间，仍需复核组内相关假设。</div>
+    <table><thead><tr><th>来源 / 特征</th><th>准确率 / 原区间</th><th>Pooled AUC</th><th>样本与来源标识</th></tr></thead><tbody>
+      {research.results.map(r => <tr><td><code>{r.source}</code><br />{r.config} · {r.feature}</td><td>{percent(r.accuracy)}<br />{percent(r.accuracyLow)}–{percent(r.accuracyHigh)}</td><td>{r.auc.toFixed(5)}</td><td>{r.subjects} 人 / {r.files} 文件 / {r.groups} 内容组<br /><code>{r.id}</code></td></tr>)}
+    </tbody></table>
+    <p>来源标识由聚合 CSV 的 SHA-256 前缀及特征模式组成，用于识别现存文件快照，不能替代完整实验运行记录。公开摘要只含聚合统计，不含逐人预测。</p>
+    <h3>如何理解历史文章中的数字</h3>
+    <p>历史文章记录过 88.7% / AUC 0.950，但当前各来源文件存在差异，因此不再作为唯一主结果展示。历史置换文件的观测 AUC 为 0.96447，100 次有效置换得到 p≈0.0099；该文件使用决策分数流程，不能直接附在另一概率融合 AUC 上。</p>
+    <p>仅采集时间戳的历史对照 AUC 为 0.892，提示日期与标签强相关。仅全局幅度对照仍使用 EEG 摘要，不能称为“不看脑电”。这些关联均不证明疾病因果或诊断效能。</p>
+    <h2>路线与材料状态</h2>
+    <ul><li>已完成：SVM 基线流程、被试/内容分组、批次对照检查与方法笔记。</li><li>后续规划：深度基线、EEGNet、Conformer、Mamba / Bi-Mamba 的统一划分比较，尚无本站发布的对应实验报告。</li><li>优先条件：完善数据质量、结果溯源和批次评估，再比较模型复杂度。</li></ul>
+    <h2>来源与使用范围</h2>
+    <p>首页脑皮层使用公共解剖模板，不是被试扫描。<a href="/brain/NOTICE.txt">查看脑模板来源与许可说明</a>。研究数据集原始许可与可引用来源正在核对，本站不提供原始数据下载。</p>
+    <p>学习参考：<a href="https://github.com/alxndrTL/mamba.py" rel="noopener noreferrer">mamba.py</a>。实现选型需结合运行环境与实验验证。</p>
   </div>
 </BaseLayout>

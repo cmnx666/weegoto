@@ -13,7 +13,7 @@ const year = new Date().getFullYear();
       <a href="/rss.xml" data-cursor="link">RSS</a> ·
       <a href="/sitemap-index.xml" data-cursor="link">站点地图</a>
       {
-        SITE.github && SITE.github !== 'https://github.com/' && (
+        SITE.github && (
           <> · <a href={SITE.github} data-cursor="link">代码仓库</a></>
         )
       }

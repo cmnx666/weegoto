@@ -1,0 +1,48 @@
+{
+  "reviewedAt": "2026-10-19",
+  "status": "existing-snapshots-not-rerun",
+  "results": [
+    {
+      "id": "888de670d736-absolute",
+      "source": "results/comparison.csv",
+      "feature": "absolute",
+      "config": "dedup",
+      "subjects": 62,
+      "files": 174,
+      "groups": 53,
+      "accuracy": 0.8709677419354839,
+      "auc": 0.9686520376175549,
+      "accuracyLow": 0.7741935483870968,
+      "accuracyHigh": 0.9516129032258065,
+      "sha256": "888de670d736af5225adf26f76e78e7c88f4a56e012e3329b67b7fc64e853da4"
+    },
+    {
+      "id": "06eaef1ef147-absolute",
+      "source": "results_newdata/comparison.csv",
+      "feature": "absolute",
+      "config": "dedup",
+      "subjects": 62,
+      "files": 174,
+      "groups": 53,
+      "accuracy": 0.8709677419354839,
+      "auc": 0.922675026123302,
+      "accuracyLow": 0.7741935483870968,
+      "accuracyHigh": 0.9516129032258065,
+      "sha256": "06eaef1ef1476bc80b5c9d874cba7e9875e618a49cdaed2f8166f34bfff2bf55"
+    },
+    {
+      "id": "06eaef1ef147-relative",
+      "source": "results_newdata/comparison.csv",
+      "feature": "relative",
+      "config": "dedup",
+      "subjects": 62,
+      "files": 174,
+      "groups": 53,
+      "accuracy": 0.8709677419354839,
+      "auc": 0.9519331243469175,
+      "accuracyLow": 0.7741935483870968,
+      "accuracyHigh": 0.9516129032258065,
+      "sha256": "06eaef1ef1476bc80b5c9d874cba7e9875e618a49cdaed2f8166f34bfff2bf55"
+    }
+  ]
+}

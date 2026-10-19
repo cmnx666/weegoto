@@ -40,7 +40,7 @@ if not errorlevel 1 (
   echo   关闭这个窗口即可停止服务器。
   echo.
   start "" "http://127.0.0.1:8080/index.html"
-  node -e "const h=require('http'),f=require('fs'),p=require('path');const root=p.join(process.cwd(),'dist');const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript','.svg':'image/svg+xml','.xml':'application/xml','.txt':'text/plain','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u.endsWith('/'))u+='index.html';let fp=p.join(root,u);if(!fp.startsWith(root)){s.writeHead(403);return s.end();}f.readFile(fp,(e,d)=>{if(e){s.writeHead(404);return s.end('404');}s.writeHead(200,{'Content-Type':mime[p.extname(fp)]||'application/octet-stream'});s.end(d);});}).listen(8080,'127.0.0.1');"
+  npm run preview -- --host 127.0.0.1 --port 8080
   goto :eof
 )
 

@@ -26,7 +26,7 @@ import { SITE } from '../consts';
       <li><strong>预处理</strong>：MNE（通道归一化 → 坏通道插值 → 0.5–45 Hz 带通 + 50 Hz 陷波 → 平均参考 → ICA + ICLabel → 2 秒分段 → 坏段剔除）</li>
       <li><strong>特征</strong>：Welch 功率谱 → 5 个频带平均功率 → 取 log10 → 19 通道 × 5 频带 = 95 维</li>
       <li><strong>模型</strong>：标准化 + RBF 核 SVM，三个条件（EC / EO / TASK）各训一个，被试级概率融合</li>
-      <li><strong>评估</strong>：按被试分组的 5 折交叉验证，MD5 内容去重防泄漏，bootstrap 置信区间 + 置换检验</li>
+      <li><strong>评估</strong>：按被试分组的 5 折交叉验证，被试/内容分组降低泄漏风险，bootstrap 区间与置换检验需结合独立性假设解释</li>
       <li><strong>下一步</strong>：端到端深度学习 → 双向 Mamba</li>
     </ul>
 
@@ -42,7 +42,7 @@ import { SITE } from '../consts';
       本研究使用公开脑电数据集 <strong>HUSM_EEG</strong>：181 个 EDF 文件、64 名被试、
       19 个标准 10-20 电极、采样率 256 Hz，包含闭眼静息（EC）、睁眼静息（EO）与认知任务（TASK）三种条件。
     </p>
-    <p>感谢数据采集者与公开者。数据的使用遵循其原始许可条款。</p>
+    <p>感谢数据采集者与公开者。数据的公开来源与许可条款仍在核对；本站不分发原始数据，引用与使用应先确认原始授权。</p>
 
     <div class="callout danger">
       <strong>关于数据隐私的声明</strong>

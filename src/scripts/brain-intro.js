@@ -1,7 +1,7 @@
-import brainMesh from '../assets/brain-mesh.json';
+
 import { initTimeline } from './timeline.js';
 
-(() => {
+(async () => {
   'use strict';
   document.body.classList.add('intro-open');
   const $ = id => document.getElementById(id);
@@ -23,7 +23,7 @@ import { initTimeline } from './timeline.js';
   // FreeSurfer fsaverage5 pial anatomy, distributed with Nilearn. Attribution in HTML head.
   // FreeSurfer fsaverage5 pial anatomy, distributed with Nilearn. Attribution in HTML head.
   const points=[],edges=[];
-  const meshData=brainMesh;
+  const meshData=(await import('../assets/brain-mesh.json')).default;
   const surface=$('brain-surface');
   const gl=surface.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true});
   let surfaceProgram=null,surfaceCount=0,surfaceUniforms={};
@@ -196,7 +196,7 @@ import { initTimeline } from './timeline.js';
     $('transition-kicker').textContent=labels[0];$('transition-title').textContent=labels[1];$('transition-sub').textContent=labels[2];
   }
   function render(t){
-    if(state==='done')return;
+    if(state==='done'||e.target.closest?.('.reading-entry'))return;
     const dt=lastRender?Math.min((t-lastRender)/1000,.05):0;lastRender=t;
     if(state==='idle'&&!drag){
       yaw+=velocity.x*dt;pitch=clamp(pitch+velocity.y*dt,-1.48,1.48);
@@ -284,7 +284,7 @@ import { initTimeline } from './timeline.js';
   cv.addEventListener('dblclick',resetView);
   // Block the timeline's document-level input handlers throughout the opening scene.
   for(const event of ['wheel','touchstart','touchend','keydown'])window.addEventListener(event,e=>{
-    if(state==='done')return;
+    if(state==='done'||e.target.closest?.('.reading-entry'))return;
     if(event==='keydown'){
       if(e.target===cv&&state==='idle'){
         const map={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]},direction=map[e.key];
@@ -303,6 +303,13 @@ import { initTimeline } from './timeline.js';
   });
   $('tl').inert=true;$('tl').setAttribute('aria-hidden','true');
   const requestedGeneration=Number(new URLSearchParams(location.search).get('gen'));
-  if(Number.isInteger(requestedGeneration)&&requestedGeneration>=1&&requestedGeneration<=8){complete();}
+  if(reduce){complete();}
+  else if(Number.isInteger(requestedGeneration)&&requestedGeneration>=1&&requestedGeneration<=8){complete();}
   else{frame=requestAnimationFrame(render);}
-})();
+})().catch(error => {
+  console.error('Opening unavailable:', error);
+  document.body.classList.remove('intro-open');
+  const intro = document.getElementById('intro');
+  if (intro) { intro.hidden = true; intro.inert = true; }
+  document.querySelector('.reading-entry')?.setAttribute('open', '');
+});

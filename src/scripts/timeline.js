@@ -14,13 +14,9 @@ export function initTimeline() {
             '代价是<b>特征必须由人设计</b> —— 95 维 PSD 把 2 秒的时间结构整个平均掉了。'],
       gain:'小样本、高维特征下非常稳；有最大间隔的理论保证、可解释、训练快。',
       cost:'特征必须由人设计。95 维 PSD 把 2 秒的时间结构整个平均掉了 —— 模型从头到尾没「看见」过时间。',
-      eeg:'就是我们现在做的事：手工频带功率 + RBF 核 SVM，被试级 5 折，AUC 0.950。',
+      eeg:'就是我们现在做的事：手工频带功率 + RBF 核 SVM，被试级分组评估；历史结果与当前版本来源见资源页，不作诊断能力解释。',
       tags:['手工特征','核技巧','最大间隔'],
-      arts:[
-        {t:'rep', s:'批次混杂',  title:'批次混杂：一个 0.892 AUC 的警告',   date:'2026-10-08', href:'/progress/batch-confound'},
-        {t:'rep', s:'被试级评估', title:'手工特征 + RBF-SVM 的被试级评估',  date:'2026-10-06', href:'/progress'},
-        {t:'note',s:'预处理踩坑', title:'MNE 预处理踩坑合集：顺序、阈值与不报错的坑', date:'2026-10-05', href:'/notes/mne-pitfalls'},
-        {t:'note',s:'epoch 切分', title:'为什么按 epoch 随机切分会得到假的高准确率', date:'2026-09-28', href:'/notes/subject-level-cv'}]},
+      arts:[]},
 
     { gen:2, model:'MLP', cn:'多层感知机', color:'#8b6df0', band:'δ/θ · 起步',
       one:'让机器自己铺路 —— 但它不知道路该往哪延伸。',
@@ -30,9 +26,7 @@ export function initTimeline() {
       cost:'没有结构先验。把输入的时间点随便打乱，MLP 的结果也只是跟着打乱 —— 它不知道「相邻」意味着什么。',
       eeg:'几乎不单独用于原始波形，一般只作为最后的分类头（Global Pooling → Linear → 2 类）。',
       tags:['全连接','反向传播','无结构先验'],
-      arts:[
-        {t:'note',s:'端到端',   title:'从手工特征到端到端：反向传播改变了什么', date:'2026-10-02', href:'/notes'},
-        {t:'rep', s:'MLP 基线', title:'MLP 基线：把 95 维 PSD 喂进全连接',      date:'2026-09-30', href:'/progress'}]},
+      arts:[]},
 
     { gen:3, model:'1D-CNN / EEGNet', cn:'卷积网络', color:'#a96fe6', band:'α · 提速',
       one:'只看眼前一小段 —— 但看得又快又准。',
@@ -42,9 +36,7 @@ export function initTimeline() {
       cost:'感受野有限。要覆盖 512 个点得堆很多层；对真正隔得远的两个事件仍然无力。',
       eeg:'EEGNet 是最该先跑的深度基线：时间卷积 → 空间深度卷积 → 可分离卷积，参数量只有几千。',
       tags:['权值共享','感受野','深度可分离卷积'],
-      arts:[
-        {t:'rep', s:'EEGNet 复现', title:'EEGNet 复现：参数量只有几千的深度基线', date:'2026-10-04', href:'/progress'},
-        {t:'note',s:'感受野',      title:'感受野到底能看多长：从 3 层卷积说起',    date:'2026-10-01', href:'/notes'}]},
+      arts:[]},
 
     { gen:4, model:'RNN / LSTM / GRU', cn:'循环网络', color:'#c56fd2', band:'α/β',
       one:'一边看一边记 —— 但只能一个点一个点地看。',
@@ -54,9 +46,7 @@ export function initTimeline() {
       cost:'必须串行（要算 t 得先算 t−1），GPU 并行度极低；梯度消失导致实际记不住太久。',
       eeg:'多数场合已被 CNN / Transformer 取代。但「隐藏状态」是理解 Mamba 的前提。',
       tags:['隐藏状态','门控机制','梯度消失'],
-      arts:[
-        {t:'note',s:'隐藏状态', title:'隐藏状态：理解 Mamba 的前置知识', date:'2026-09-29', href:'/notes'},
-        {t:'note',s:'梯度消失', title:'梯度消失为什么让 LSTM 也记不住',  date:'2026-09-26', href:'/notes'}]},
+      arts:[]},
 
     { gen:5, model:'Transformer', cn:'注意力机制', color:'#de6fb4', band:'β · 全局',
       one:'一眼看完全文 —— 但文章越长越贵。',
@@ -66,9 +56,7 @@ export function initTimeline() {
       cost:'O(n²) 的时间和内存：序列翻倍、代价翻四倍。位置信息还得靠外加的位置编码。',
       eeg:'EEG-Conformer 一类的代表。对 2 秒 epoch（512 点）完全够用，这一代要认真学。',
       tags:['Q / K / V','多头注意力','O(n²)'],
-      arts:[
-        {t:'rep', s:'Conformer', title:'EEG-Conformer 复现与对比实验',    date:'2026-10-03', href:'/progress'},
-        {t:'note',s:'复杂度直觉', title:'注意力复杂度的直觉：为什么是平方', date:'2026-09-27', href:'/notes'}]},
+      arts:[]},
 
     { gen:6, model:'SSM / S4', cn:'状态空间模型', color:'#f06f8a', band:'β/γ',
       one:'用一套固定的压缩规则记住全部历史 —— 便宜，但规则是死的。',
@@ -78,9 +66,7 @@ export function initTimeline() {
       cost:'时不变 = 不能选择。A / B / C / Δ 与输入无关，无法「根据内容决定记住什么、忽略什么」。',
       eeg:'原始 S4 在 EEG 上用得不多，主要是通往 Mamba 的必经一站。',
       tags:['状态空间','卷积视角','线性时不变'],
-      arts:[
-        {t:'note',s:'S4 入门', title:'状态空间模型入门：从 RNN 到 S4', date:'2026-09-25', href:'/notes'},
-        {t:'rep', s:'可行性',   title:'S4 在 EEG 上的可行性评估',      date:'2026-09-22', href:'/progress'}]},
+      arts:[]},
 
     { gen:7, model:'Mamba / S6', cn:'选择性状态空间', color:'#f7954a', band:'γ · 高频',
       one:'根据内容决定记什么 —— 又便宜又聪明，但只能往后看。',
@@ -90,24 +76,21 @@ export function initTimeline() {
       cost:'失去卷积形式 → 改用并行扫描 + 硬件感知优化。遗留问题：因果的（单向），只能看历史、看不到未来。',
       eeg:'已有若干探索工作。线性复杂度的优势只有在序列很长时才体现得出来。',
       tags:['选择性机制','并行扫描','O(n) 线性'],
-      arts:[
-        {t:'rep', s:'Mamba 探索', title:'Mamba 在 EEG 上的探索：第一批结果', date:'2026-09-20', href:'/outlook/roadmap-svm-to-mamba'},
-        {t:'note',s:'选择性机制', title:'选择性机制：让 B、C、Δ 依赖输入',    date:'2026-09-18', href:'/notes'}]},
+      arts:[]},
 
     { gen:8, model:'Bi-Mamba', cn:'双向 Mamba', color:'#fbbf24', band:'γ · 终点',
-      one:'前后一起看 —— 离线序列分析的终点。',
+      one:'前后一起看 —— 适合探索离线上下文的候选路线。',
       body:['<b>前向 + 后向两条 Mamba</b> 输出融合，去掉因果限制，每个位置同时拥有左右上下文。',
-            '严格说没有能力缺陷；代价是不再流式 —— 但<b>离线分析根本不需要实时</b>。'],
+            '需要更多参数和计算；双向上下文适合离线任务，但不能直接用于因果流式预测。'],
       gain:'前向 + 后向两条 Mamba，输出相加 / 拼接 / 门控融合。去掉因果限制：每个位置同时拥有左右上下文。',
-      cost:'严格说没有新的能力缺陷；代价是不再是流式的（不能实时逐点输出）—— 但离线分析根本不需要实时。',
-      eeg:'EEG 的首选。所有 EEG + Mamba 的工作几乎都走这条路：睡眠分期、运动想象、抑郁识别。',
-      tags:['双向扫描','上下文融合','离线首选'],
-      arts:[
-        {t:'rep', s:'Bi-Mamba 路线', title:'Bi-Mamba 离线分析路线图', date:'2026-09-16', href:'/outlook/roadmap-svm-to-mamba'},
-        {t:'note',s:'为什么双向',    title:'双向扫描：为什么离线不需要因果', date:'2026-09-14', href:'/notes'},
-        {t:'note',s:'下一步',        title:'下一步：从 SVM 走到 Bi-Mamba 的完整计划', date:'2026-09-12', href:'/outlook/roadmap-svm-to-mamba'}]},
+      cost:'双向结构增加计算与参数成本，不能直接做因果流式预测；是否更好需要相同划分下的实验验证。',
+      eeg:'这是后续待验证的离线模型路线，目前尚未报告本项目的 Bi-Mamba 实验结果。',
+      tags:['双向扫描','上下文融合','离线候选'],
+      arts:[]},
   ];
-  const TYPE = { rep:{name:'实验报告',color:'#fbbf24',text:'#fcd34d'},
+  const published = JSON.parse(document.getElementById('published-articles').textContent || '[]');
+  for (const g of GENS) g.arts = published.filter(a => a.generation === g.gen);
+  const TYPE = { rep:{name:'项目进展',color:'#fbbf24',text:'#fcd34d'},
                  note:{name:'心得分享',color:'#a78bfa',text:'#c9bcfd'} };
   const BAND_OF = ['δ · 低频起步','δ/θ · 起步','α · 提速','α/β','β · 全局','β/γ','γ · 高频','γ · 终点'];
 
@@ -353,6 +336,9 @@ export function initTimeline() {
     const x = NODE_X[i], y = NODE_Y[i];
     const grp = document.createElementNS(NS,'g');
     grp.style.cursor = 'pointer';
+    grp.setAttribute('role','button'); grp.setAttribute('tabindex','0');
+    grp.setAttribute('aria-label',`${g.model}：打开模型详情`);
+    grp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openDetail(i);}});
     const halo = document.createElementNS(NS,'circle');
     halo.setAttribute('cx',x); halo.setAttribute('cy',y); halo.setAttribute('r','18');
     halo.setAttribute('fill','none'); halo.setAttribute('stroke', g.color);
@@ -456,6 +442,7 @@ export function initTimeline() {
     return best;
   }
 
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   function fillCard(i) {
     const g = GENS[i];
     C.accent.style.background = g.color;
@@ -466,12 +453,12 @@ export function initTimeline() {
     C.pg.textContent = i + 1;
 
     const nRep = g.arts.filter((a) => a.t === 'rep').length;
-    const head = `<span class="chip rep" style="cursor:default"><i></i>实验报告 ${nRep}</span>` +
+    const head = `<span class="chip rep" style="cursor:default"><i></i>已发布进展 ${nRep}</span>` +
                  `<span class="chip note" style="cursor:default"><i></i>心得 ${g.arts.length-nRep}</span>`;
     const items = g.arts.slice(0,2).map((a) =>
-      `<span class="chip ${a.t}" data-g="${i}"><i></i>${a.s}</span>`).join('');
+      `<button type="button" class="chip ${a.t}" data-g="${i}"><i></i>${escapeHtml(a.s)}</button>`).join('');
     C.kg.innerHTML = head + items +
-      `<span class="chip more" data-g="${i}">在图谱中查看全部 ${g.arts.length} 篇 →</span>`;
+      `<button type="button" class="chip more" data-g="${i}">${g.arts.length ? `查看已发布 ${g.arts.length} 篇` : "查看模型规划"} →</button>`;
     card.classList.remove('zoomin'); void card.offsetWidth; card.classList.add('zoomin');
 
     nodeEls.forEach((n, j) => {
@@ -498,7 +485,9 @@ export function initTimeline() {
     if (n !== nearest) { nearest = n; fillCard(n); }
   }
 
+  let loopFrame = 0;
   function loop(t) {
+    if(document.hidden || !document.body.classList.contains('timeline-visible')) { loopFrame = 0; return; }
     if (!lastT) lastT = t;
     const dt = Math.min(0.05, (t - lastT)/1000); lastT = t;
     driftSats(t, dt);
@@ -519,34 +508,41 @@ export function initTimeline() {
       if (prog > PROG_MAX) { prog = PROG_MAX; vel = 0; jumpTarget = null; }
       apply();
     }
-    requestAnimationFrame(loop);
+    loopFrame = (!satReduced || jumpTarget !== null || vel !== 0) ? requestAnimationFrame(loop) : 0;
   }
-  requestAnimationFrame(loop);
+  const resumeLoop = () => { if(!loopFrame && !document.hidden && document.body.classList.contains('timeline-visible')) { lastT = 0; loopFrame = requestAnimationFrame(loop); } };
+  document.addEventListener('visibilitychange', resumeLoop);
+  new MutationObserver(resumeLoop).observe(document.body, { attributes:true, attributeFilter:['class'] });
+  resumeLoop();
 
   addEventListener('wheel', (e) => {
     if (detail.classList.contains('open')) return;
-    if (e.target.closest && e.target.closest('.legend')) return;
+    if (e.target.closest && e.target.closest('.legend, .reading-entry')) return;
     e.preventDefault();
     /* Firefox 的 deltaMode=1（行）需归一化，否则跨浏览器快慢差十几倍 */
     const dy = e.deltaMode === 1 ? e.deltaY*16 : e.deltaMode === 2 ? e.deltaY*400 : e.deltaY;
     jumpTarget = null;
     vel += dy * IMPULSE;
     vel = Math.max(-MAX_VEL, Math.min(MAX_VEL, vel));
-    lastWheel = performance.now();
+    lastWheel = performance.now(); resumeLoop();
   }, { passive: false });
 
   document.getElementById('next').onclick = () => {
     vel = 0; jumpTarget = Math.min(PROG_MAX, nodeProg(Math.min(7, nearest+1)));
+    if(satReduced) { prog = jumpTarget; jumpTarget = null; apply(); }
+    resumeLoop();
   };
   document.getElementById('prev').onclick = () => {
     vel = 0; jumpTarget = Math.max(PROG_MIN, nodeProg(Math.max(0, nearest-1)));
+    if(satReduced) { prog = jumpTarget; jumpTarget = null; apply(); }
+    resumeLoop();
   };
   addEventListener('keydown', (e) => {
-    if (e.target.matches('input, textarea')) return;
+    if (e.target.closest('input, textarea, select, a, button, summary, .reading-entry')) return;
     const open = detail.classList.contains('open');
     if (e.key === 'ArrowRight') open ? dGo(Math.min(7, nearest+1)) : document.getElementById('next').click();
     if (e.key === 'ArrowLeft')  open ? dGo(Math.max(0, nearest-1)) : document.getElementById('prev').click();
-    if (e.key === 'Enter' && !open) openDetail();
+    if (e.key === 'Enter' && !open) { e.preventDefault(); openDetail(); }
     if (e.key === 'Escape' && open) closeDetail();
   });
 
@@ -585,11 +581,11 @@ export function initTimeline() {
     D.band.textContent = BAND_OF[i] || '';
     D.railtags.innerHTML = g.tags.map((t) => `<span>${t}</span>`).join('');
     const nRep = g.arts.filter((a) => a.t === 'rep').length;
-    D.kgcnt.textContent = `实验报告 ${nRep} · 心得分享 ${g.arts.length - nRep}`;
-    D.kglist.innerHTML = g.arts.map((a) =>
-      `<li data-href="${a.href}"><i class="${a.t}"></i>` +
+    D.kgcnt.textContent = `已发布进展 ${nRep} · 心得分享 ${g.arts.length - nRep}`;
+    D.kglist.innerHTML = g.arts.length ? g.arts.map((a) =>
+      `<li><a href="${escapeHtml(a.href)}"><i class="${a.t}"></i>` +
       `<span class="ty">${TYPE[a.t].name}</span>` +
-      `<span class="ti">${a.title}</span><span class="arw">→</span></li>`).join('');
+      `<span class="ti">${escapeHtml(a.title)}</span><span class="arw">→</span></a></li>`).join('') : '<li><a href="/outlook/roadmap-svm-to-mamba/">规划阶段 · 查看学习与实验路线 →</a></li>';
   }
   D.kglist.addEventListener('click', (e) => {
     const li = e.target.closest('li[data-href]');
@@ -600,7 +596,7 @@ export function initTimeline() {
     i = Math.max(0, Math.min(7, i));
     if (i === nearest) return;
     const dir = i > nearest ? 1 : -1;
-    vel = 0; jumpTarget = nodeProg(i);
+    vel = 0; jumpTarget = nodeProg(i); resumeLoop();
     D.body.classList.add(dir > 0 ? 'out-up' : 'out-dn');
     setTimeout(() => {
       nearest = i; fillCard(i); dFill(i);
@@ -611,12 +607,34 @@ export function initTimeline() {
       setTimeout(() => D.body.classList.remove('in-up','in-dn'), 420);
     }, 280);
   }
+  let previousFocus = null;
+  const background = [...document.getElementById('tl').children].filter(e => e !== detail);
   function openDetail(force) {
     const i = (typeof force === 'number') ? force : nearest;
     if (i !== nearest) { nearest = i; fillCard(i); vel = 0; jumpTarget = nodeProg(i); }
-    dFill(i); detail.classList.add('open'); D.view.scrollTop = 0;
+    previousFocus = document.activeElement; document.body.classList.add('detail-open');
+    background.forEach(e => e.inert = true);
+    const reader = document.querySelector('.reading-entry'); if(reader) reader.inert = true;
+    const replay = document.getElementById('replay-intro'); if(replay) replay.inert = true;
+    detail.inert = false; dFill(i); detail.classList.add('open'); D.view.scrollTop = 0;
+    document.getElementById('d-close').focus();
   }
-  function closeDetail() { detail.classList.remove('open'); }
+  function closeDetail() {
+    if (!detail.classList.contains('open')) return;
+    detail.classList.remove('open'); detail.inert = true; document.body.classList.remove('detail-open');
+    background.forEach(e => e.inert = false);
+    const reader = document.querySelector('.reading-entry'); if(reader) reader.inert = false;
+    const replay = document.getElementById('replay-intro'); if(replay) replay.inert = false;
+    (previousFocus?.isConnected ? previousFocus : document.getElementById('next')).focus();
+  }
+  detail.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeDetail(); return; }
+    if(e.key !== 'Tab') return;
+    const focusable = [...detail.querySelectorAll('button, a[href]')].filter(e => !e.disabled);
+    const first = focusable[0], last = focusable.at(-1);
+    if(e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   document.getElementById('d-close').onclick = closeDetail;
   document.getElementById('d-next').onclick = () => dGo(Math.min(7, nearest+1));
   document.getElementById('d-prev').onclick = () => dGo(Math.max(0, nearest-1));

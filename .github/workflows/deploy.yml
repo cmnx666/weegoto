@@ -32,6 +32,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 投稿编号（内部回执）
+        required: false
+        type: string
+      post_slug:
+        description: 投稿路径（内部回执）
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -41,7 +50,7 @@ permissions:
 # 同时只跑一个部署，新的推送取消排队中的旧任务
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -60,7 +69,7 @@ jobs:
         run: npm ci
 
       - name: 构建站点
-        run: npm run build
+        run: npm run validate
         env:
           ASTRO_TELEMETRY_DISABLED: '1'
 
@@ -91,3 +100,24 @@ jobs:
       - name: 发布到 GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify-submission:
+    if: always() && github.event_name == 'workflow_dispatch' && inputs.issue_number != ''
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          POST_SLUG: ${{ inputs.post_slug }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        with:
+          script: |
+            const number = process.env.ISSUE_NUMBER;
+            const slug = process.env.POST_SLUG;
+            if (!/^[1-9]\d*$/.test(number) || !/^[a-z0-9-]+$/.test(slug)) throw new Error('无效投稿回执参数');
+            const ok = process.env.DEPLOY_RESULT === 'success';
+            const body = ok ? `部署成功，文章已上线：https://weegoto.top/notes/${slug}/` : `部署未成功，文章尚未确认上线。请检查运行日志：${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.createComment({...context.repo,issue_number:Number(number),body});

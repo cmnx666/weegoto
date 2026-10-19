@@ -66,7 +66,7 @@ import { CONTRIBUTE, REPO } from '../consts';
             正文支持完整的 Markdown（标题、列表、表格、代码块、公式都能用），
             你可以先在本地写好再整段粘进去。
           </p>
-          <p class="tip">需要 GitHub 账号。如果没有，可以发邮件给项目组，我们代为提交。</p>
+          <p class="tip">需要 GitHub 账号。如果没有，可以请有 GitHub 账号的合作者代为提交。请勿在公开 Issue 中提供任何个人医疗数据。</p>
         </div>
       </div>
 
@@ -91,8 +91,8 @@ import { CONTRIBUTE, REPO } from '../consts';
           <h3>自动发布上线</h3>
           <p>
             审核通过后，项目组会在你的 Issue 里回复一条 <code>/发布</code> 指令，
-            机器人随即把你的内容转成网站文章并重新构建站点，大约 1 分钟后就能访问。
-            <strong>你会在 Issue 里收到一条回复，里面带着文章的正式网址。</strong>
+            机器人随即把你的内容转成网站文章并重新构建站点，提交后将进入构建与部署；只有部署成功，文章才会上线。
+            <strong>你会在 Issue 里收到构建状态和部署结果，失败时也会给出日志入口。</strong>
           </p>
         </div>
       </div>

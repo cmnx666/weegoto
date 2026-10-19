@@ -150,7 +150,7 @@
     let rt: number | undefined;
     addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { resize(); init(); if (reduced) draw(0); }, 160);
+      rt = window.setTimeout(() => { resize(); init(); if (reduced) draw(0); }, 160);
     });
 
     resize();

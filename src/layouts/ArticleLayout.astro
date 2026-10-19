@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
+import { renderGuestMarkdown } from '../lib/safe-markdown.mjs';
 import { SECTIONS, CONTRIBUTE, type SectionKey } from '../consts';
 
 interface Props {
@@ -10,7 +11,8 @@ interface Props {
 }
 
 const { entry, section } = Astro.props;
-const { Content } = await render(entry);
+const { Content } = entry.data.source === 'guest' ? { Content: null } : await render(entry);
+const guestHtml = entry.data.source === 'guest' ? renderGuestMarkdown(entry.body) : '';
 const meta = SECTIONS[section];
 const fmt = (d: Date) =>
   `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
@@ -20,7 +22,7 @@ const author = entry.data.author;
 const issue = entry.data.issue;
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description}>
+<BaseLayout title={entry.data.title} description={entry.data.description} articleDate={entry.data.date} author={author}>
   <article>
     <div class="crumb">
       <a href="/" data-cursor="link">首页</a> /
@@ -38,7 +40,7 @@ const issue = entry.data.issue;
     </header>
 
     <div class="prose">
-      <Content />
+      {isGuest ? <div set:html={guestHtml} /> : Content && <Content />}
     </div>
 
     {
