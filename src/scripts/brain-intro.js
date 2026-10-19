@@ -7,13 +7,6 @@ import { initTimeline } from './timeline.js';
   const $ = id => document.getElementById(id);
   const cv=$('brain-canvas'),ctx=cv.getContext('2d'),intro=$('intro');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){
-    initTimeline();
-    document.body.classList.add('timeline-visible');document.body.classList.remove('intro-open');
-    $('tl').inert=false;$('tl').removeAttribute('aria-hidden');
-    intro.hidden=true;intro.inert=true;
-    return;
-  }
   const hit=$('core-hit'),leftHit=$('core-hit-left'),rightHit=$('core-hit-right');
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
   const smooth=(x)=>{x=clamp(x);return x*x*(3-2*x)};
@@ -203,7 +196,7 @@ import { initTimeline } from './timeline.js';
     $('transition-kicker').textContent=labels[0];$('transition-title').textContent=labels[1];$('transition-sub').textContent=labels[2];
   }
   function render(t){
-    if(state==='done'||e.target.closest?.('.reading-entry'))return;
+    if(state==='done')return;
     const dt=lastRender?Math.min((t-lastRender)/1000,.05):0;lastRender=t;
     if(state==='idle'&&!drag){
       yaw+=velocity.x*dt;pitch=clamp(pitch+velocity.y*dt,-1.48,1.48);
@@ -310,8 +303,7 @@ import { initTimeline } from './timeline.js';
   });
   $('tl').inert=true;$('tl').setAttribute('aria-hidden','true');
   const requestedGeneration=Number(new URLSearchParams(location.search).get('gen'));
-  if(reduce){complete();}
-  else if(Number.isInteger(requestedGeneration)&&requestedGeneration>=1&&requestedGeneration<=8){complete();}
+  if(Number.isInteger(requestedGeneration)&&requestedGeneration>=1&&requestedGeneration<=8){complete();}
   else{frame=requestAnimationFrame(render);}
 })().catch(error => {
   console.error('Opening unavailable:', error);
