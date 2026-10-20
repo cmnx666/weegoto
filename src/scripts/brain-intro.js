@@ -9,7 +9,7 @@ import { electrodeAnchors, layoutElectrodeLabels } from '../lib/eeg-electrodes.m
   const cv=$('brain-canvas'),ctx=cv.getContext('2d'),intro=$('intro');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const electrodeButtons=[...intro.querySelectorAll('[data-eeg]')];
-  const activationControls=[...electrodeButtons,$('enter-intro')];
+  const activationControls=electrodeButtons;
   const buttonByName=new Map(electrodeButtons.map(button=>[button.dataset.eeg,button]));
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
   const smooth=(x)=>{x=clamp(x);return x*x*(3-2*x)};
@@ -105,7 +105,7 @@ import { electrodeAnchors, layoutElectrodeLabels } from '../lib/eeg-electrodes.m
     W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);mobile=W<=680;
     cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
     base=mobile?Math.min(W*.25,H*.135):Math.min(W*.15,H*.215);
-    cx=W*(mobile?.50:.70);cy=H*(mobile?.625:.50);
+    cx=W*.50;cy=H*.50;
   }
   addEventListener('resize',resize);resize();
   function rotate(p,ry,rx){
@@ -260,7 +260,10 @@ import { electrodeAnchors, layoutElectrodeLabels } from '../lib/eeg-electrodes.m
     activationControls.forEach(b=>b.disabled=false);
     state='idle';epoch=performance.now();startCore={x:0,y:0};resetView();lastRender=0;
     window.dispatchEvent(new CustomEvent('weegoto:timeline-reset'));
-    frame=requestAnimationFrame(render);$('enter-intro').focus({preventScroll:true});
+    intro.classList.remove('opening-reveal');
+    void intro.offsetWidth;
+    intro.classList.add('opening-reveal');
+    frame=requestAnimationFrame(render);$('eeg-Cz').focus({preventScroll:true});
   });
   function resetView(){yaw=-.20;pitch=0;pan={x:0,y:0};velocity={x:0,y:0};drag=null;suppressClickUntil=0;intro.classList.remove('dragging');}
   $('reset-view').addEventListener('click',resetView);
@@ -327,7 +330,7 @@ import { electrodeAnchors, layoutElectrodeLabels } from '../lib/eeg-electrodes.m
   $('tl').inert=true;$('tl').setAttribute('aria-hidden','true');
   const requestedGeneration=Number(new URLSearchParams(location.search).get('gen'));
   if(Number.isInteger(requestedGeneration)&&requestedGeneration>=1&&requestedGeneration<=8){complete();}
-  else{frame=requestAnimationFrame(render);}
+  else{intro.classList.add('opening-reveal');frame=requestAnimationFrame(render);}
 })().catch(error => {
   console.error('Opening unavailable:', error);
   document.body.classList.remove('intro-open');

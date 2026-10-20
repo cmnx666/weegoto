@@ -13,6 +13,18 @@ body.intro-open #intro.dragging .cortex-hit { cursor: grabbing !important; }
 body.intro-open #wg-cursor, body.intro-open #wg-tag { visibility: hidden; }
 
 /* Named 10-20 scalp sites; label leaders are drawn on the existing canvas. */
+/* Reveal the anatomy and its projected controls together after mesh loading. */
+#intro .intro-header{justify-content:flex-end}
+#intro{background:radial-gradient(ellipse at 50% 48%,#071321 0%,#030811 43%,#010309 80%)}
+#intro .brain-tools{left:50%}
+#intro .brain-instruction{left:3%;right:3%}
+#intro #brain-surface,#intro #brain-canvas,#intro .electrode-layer{opacity:0}
+#intro.opening-reveal #brain-surface,#intro.opening-reveal #brain-canvas,
+#intro.opening-reveal .electrode-layer{animation:cortex-arrive 1.6s cubic-bezier(.2,.7,.2,1) both}
+#intro.running #brain-surface,#intro.running #brain-canvas{animation:none;opacity:1}
+#intro.running .electrode-layer{animation:none;opacity:0}
+@keyframes cortex-arrive{from{opacity:0;transform:translateY(18px) scale(.94);filter:blur(7px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@media(prefers-reduced-motion:reduce){#intro.opening-reveal #brain-surface,#intro.opening-reveal #brain-canvas,#intro.opening-reveal .electrode-layer{animation:none;opacity:1}}
 .electrode-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
 #intro .eeg-hit:not([data-positioned]){visibility:hidden}
 #intro .eeg-hit{position:absolute;left:70%;top:50%;width:44px;height:26px;margin:-13px 0 0 -22px;border:1px solid #9cd4f877;border-radius:8px;background:#061422e8;color:#dbf1ff;pointer-events:auto;touch-action:none;box-shadow:0 0 12px #6aacf025;transition:opacity .25s,border-color .2s,background .2s;opacity:1}

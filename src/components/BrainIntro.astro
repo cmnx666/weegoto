@@ -7,18 +7,8 @@ import { EEG_ELECTRODES } from '../lib/eeg-electrodes.mjs';
   <canvas id="brain-canvas" tabindex="0" aria-label="平视侧面三维大脑，左键拖动旋转，Shift 加左键拖动平移，双击复位"></canvas>
   <div class="intro-grain" aria-hidden="true"></div>
   <header class="intro-header">
-    <a class="intro-brand" href="/" aria-label="weegoto 首页"><span class="intro-orb"></span><span>weegoto<small>EEG · DEPRESSION</small></span></a>
     <div class="intro-header-right"><button id="skip-intro" class="quiet-btn">跳过动画 <span aria-hidden="true">↗</span></button></div>
   </header>
-  <div class="hero-copy">
-    <div class="eyebrow"><span></span> EXPLORING THE NEURAL LANDSCAPE</div>
-    <h1>在神经之间，<br>寻找情绪的<span>线索。</span></h1>
-    <p>从一次神经活动，到一段脑电信号。<br>探索 EEG 抑郁症识别背后的模型演进。</p>
-    <button class="enter-btn" id="enter-intro"><span class="btn-dot"></span>激活 Cz 电极<span class="enter-arrow" aria-hidden="true">↗</span></button>
-    <div class="hero-footnote">一条信号，连接我们的研究之路</div>
-  </div>
-  <div class="brain-tag tag-top" aria-hidden="true"><i></i> LATERAL VIEW <span>真实脑皮层 · 平视视角</span></div>
-  <div class="brain-tag tag-bottom">EEG · 10–20 · 19 SITES <span>头皮电极 · 脑模型投影示意</span></div>
   <div class="electrode-layer" role="group" aria-label="国际 10–20 系统的 19 个 EEG 电极，点击任一点进入动画">
     {EEG_ELECTRODES.map(e => <button type="button" id={`eeg-${e.name}`} class="cortex-hit eeg-hit" data-eeg={e.name}
       title={`${e.name}${e.standardName !== e.name ? ` (${e.standardName})` : ''} · ${e.region} · 点击进入动画`}
@@ -29,7 +19,6 @@ import { EEG_ELECTRODES } from '../lib/eeg-electrodes.mjs';
   <div class="brain-tools" aria-label="大脑拖动控制"><button type="button" data-motion="rotate" aria-pressed="true">↻ 旋转</button><button type="button" data-motion="pan" aria-pressed="false">↔ 移动</button><span></span><button type="button" id="reset-view">⟲ 复位</button></div>
   <div class="brain-instruction"><span class="instruction-cross" aria-hidden="true">＋</span><span id="drag-hint">拖动旋转 · Shift 拖动平移 · 点击任一 EEG 点进入</span></div>
   <div id="transition-copy" role="status" aria-live="polite"><span id="transition-kicker">NEURAL ACTIVATION</span><h2 id="transition-title">一次激活，一段信号。</h2><p id="transition-sub">从神经网络，走向脑电的时间结构</p></div>
-  <footer class="intro-footer"><div class="intro-steps"><span class="step active" data-step="0"><b>01</b> 神经网络</span><i></i><span class="step" data-step="1"><b>02</b> 脑电信号</span><i></i><span class="step" data-step="2"><b>03</b> 研究时间线</span></div><span class="footer-code">BRAIN → SIGNAL → RESEARCH</span></footer>
   <div class="transition-track"><span id="transition-progress"></span></div>
 </section>
 <button id="replay-intro" class="replay-btn" hidden>↺ 重播开场</button>
