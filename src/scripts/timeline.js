@@ -359,7 +359,7 @@ export function initTimeline() {
 
   /* ---- 世代大节点 ---- */
   const nodeEls = GENS.map((g, i) => {
-    const progress = modelProgress(g.gen);
+    const progress = modelProgress(g.gen, g.color);
     const x = NODE_X[i], y = NODE_Y[i];
     const grp = document.createElementNS(NS,'g');
     grp.style.cursor = 'pointer';
@@ -377,14 +377,14 @@ export function initTimeline() {
     c1.setAttribute('stroke-dasharray', progress.dash);
     const c2 = document.createElementNS(NS,'circle');
     c2.setAttribute('cx',x); c2.setAttribute('cy',y); c2.setAttribute('r','4.5');
-    c2.setAttribute('fill', progress.key === 'completed' ? progress.color : 'none');
+    c2.setAttribute('fill', progress.color);
     grp.append(halo, c1, c2);
     const status = document.createElementNS(NS,'text');
     status.setAttribute('x',x); status.setAttribute('y',y + 39);
     status.setAttribute('text-anchor','middle'); status.setAttribute('fill',progress.color);
     status.setAttribute('font-size','11'); status.setAttribute('pointer-events','none');
     status.textContent = progress.key === 'completed' ? '✓ 已完成' : progress.label;
-    grp.appendChild(status);
+    if (progress.key === 'completed') grp.appendChild(status);
     const hit = document.createElementNS(NS,'circle');
     hit.setAttribute('cx',x); hit.setAttribute('cy',y); hit.setAttribute('r','30');
     hit.setAttribute('fill','transparent'); grp.appendChild(hit);

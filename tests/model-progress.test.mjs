@@ -9,7 +9,16 @@ test('only the confirmed SVM project is complete; future stages remain planned',
   assert.equal(stages[0].dash, '');
   for (const stage of stages.slice(1)) {
     assert.equal(stage.label, '待开展');
-    assert.notEqual(stage.dash, '');
+    assert.equal(stage.dash, '');
     assert.notEqual(stage.color, stages[0].color);
+  }
+});
+
+test('planned nodes preserve their original model color and solid outline', () => {
+  for (let generation = 2; generation <= 8; generation++) {
+    const originalColor = '#a96fe6';
+    const stage = modelProgress(generation, originalColor);
+    assert.equal(stage.color, originalColor);
+    assert.equal(stage.dash, '');
   }
 });
