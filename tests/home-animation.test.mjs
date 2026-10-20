@@ -35,7 +35,7 @@ function harness() {
     drag:null, velocity:{x:0,y:0}, yaw:0, pitch:0, pan:{x:0,y:0},
     frozenYaw:0, frozenPitch:0, startCore:{x:0,y:0}, suppressClickUntil:0,
     anchors:electrodeAnchors(), activeElectrode:electrodeAnchors().find(e=>e.name==='Cz'), cx:0,cy:0,W:100,H:100,
-    activationControls:EEG_ELECTRODES.map(e=>$('eeg-'+e.name)),
+    activationControls:EEG_ELECTRODES.map(e=>$('eeg-'+e.name)).concat($('enter-intro')),
     hit:$('core-hit'),leftHit:$('core-hit-left'),rightHit:$('core-hit-right'), intro:$('intro'),
     clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),smooth:n=>n,
     project:p=>({x:p.x,y:p.y}),resetView(){},
@@ -68,14 +68,14 @@ test('activation finishes the transition and replay restores the opening', () =>
   assert.equal($('intro').hidden,false);
   assert.equal($('replay-intro').hidden,true);
   assert.equal($('intro').classList.contains('opening-reveal'),true);
-  assert.equal($('eeg-Cz').focused,true);
+  assert.equal($('enter-intro').focused,true);
   assert.ok(calls.brain>=2);
 });
 
-test('brain-only opening removes left copy without leaving a missing activation control', () => {
+test('restored opening copy retains its activation control and brain entrance animation', () => {
   const markup=fs.readFileSync(new URL('../src/components/BrainIntro.astro',import.meta.url),'utf8');
-  assert.doesNotMatch(markup,/hero-copy|intro-brand|intro-footer|brain-tag|enter-intro/);
-  assert.doesNotMatch(source,/\$\('enter-intro'\)/);
+  for (const restored of ['hero-copy','intro-brand','intro-footer','brain-tag','enter-intro']) assert.ok(markup.includes(restored));
+  assert.match(source,/const activationControls=\[\.\.\.electrodeButtons,\$\('enter-intro'\)\]/);
   assert.match(source,/intro.classList.add\('opening-reveal'\)/);
 });
 

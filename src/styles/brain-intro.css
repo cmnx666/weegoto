@@ -14,10 +14,6 @@ body.intro-open #wg-cursor, body.intro-open #wg-tag { visibility: hidden; }
 
 /* Named 10-20 scalp sites; label leaders are drawn on the existing canvas. */
 /* Reveal the anatomy and its projected controls together after mesh loading. */
-#intro .intro-header{justify-content:flex-end}
-#intro{background:radial-gradient(ellipse at 50% 48%,#071321 0%,#030811 43%,#010309 80%)}
-#intro .brain-tools{left:50%}
-#intro .brain-instruction{left:3%;right:3%}
 #intro #brain-surface,#intro #brain-canvas,#intro .electrode-layer{opacity:0}
 #intro.opening-reveal #brain-surface,#intro.opening-reveal #brain-canvas,
 #intro.opening-reveal .electrode-layer{animation:cortex-arrive 1.6s cubic-bezier(.2,.7,.2,1) both}
