@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="weegoto 项目组成员使用说明：协作者邀请、心得自审发布、网站功能与常见问题。"><meta name="color-scheme" content="dark"><title>项目组成员使用说明 · weegoto</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:#eeeaf8;background:#0b0815}*{box-sizing:border-box}body{margin:0;line-height:1.85}header{border-bottom:1px solid #a78bfa30;background:#141020}nav,main,footer{max-width:980px;margin:auto;padding:22px 28px}nav{display:flex;gap:20px;align-items:center;flex-wrap:wrap}nav strong{margin-right:auto;color:#ece2ff}a{color:#c4b5fd;text-underline-offset:4px;overflow-wrap:anywhere}a:hover{color:white}a:focus-visible{outline:2px solid #fbbf24;outline-offset:4px}main{padding-top:35px;padding-bottom:50px}h1{font-size:clamp(27px,4vw,38px);line-height:1.4;margin:0 0 22px}h2{font-size:23px;margin:42px 0 16px;border-bottom:1px solid #a78bfa30;padding-bottom:10px}p,li{overflow-wrap:anywhere}li{margin:9px 0}strong{color:#f1eaff}pre{padding:18px;background:#171225;border:1px solid #a78bfa30;border-radius:10px;overflow:auto;line-height:1.65}code{font-family:Consolas,monospace;color:#e2d5ff}p code,li code{background:#a78bfa13;padding:2px 5px;border-radius:4px}table{display:block;width:100%;overflow:auto;border-collapse:collapse;margin:24px 0;font-size:14px}th,td{border:1px solid #a78bfa30;padding:12px 15px;min-width:140px;text-align:left;vertical-align:top}th{background:#211832}td{background:#110d1d}footer{border-top:1px solid #a78bfa30;color:#a79dbd;font-size:13px}@media(max-width:600px){nav,main,footer{padding-left:18px;padding-right:18px}h2{font-size:20px}ol,ul{padding-left:24px}}@media print{:root{color:#222;background:#fff;color-scheme:light}header,footer{display:none}main{max-width:none}a,code,strong{color:inherit}pre,th,td,p code,li code{background:#fff;border-color:#ccc}table{display:table;font-size:11px}th,td{min-width:0}h2{break-after:avoid}}
+</style></head><body><header><nav aria-label="页面导航"><strong>weegoto · 成员指南</strong><a href="/">网站首页</a><a href="/contribute/">投稿指南</a><a href="https://github.com/cmnx666/weegoto">GitHub 仓库</a></nav></header><main><h1>weegoto 项目组成员使用说明</h1>
+<p>更新日期：2026-11-05。适用仓库：<a href="https://github.com/cmnx666/weegoto">cmnx666/weegoto</a>，网站：<a href="https://weegoto.top">weegoto.top</a>。</p>
+<h2>先看这里：第一次发布自己的心得</h2>
+<ol>
+<li>向负责人提供自己的 <strong>GitHub 用户名</strong>。负责人邀请你成为仓库协作者后，请登录对应账号，在 GitHub 通知或邀请邮件中接受邀请。仅收到邀请还不能发布。</li>
+<li>打开网站的<a href="https://weegoto.top/contribute/">投稿指南</a>，点击“开始投稿”。也可直接打开<a href="https://github.com/cmnx666/weegoto/issues/new?template=submit-note.yml">心得投稿表单</a>。</li>
+<li>填写文章标题、署名、一句话摘要、正文；正文粘贴 Markdown 即可，不要把整篇包在代码块里，不用复制 <code>---</code> 开头的文章元数据。链接短名和标签可选，短名建议英文小写、数字、连字符，标签用英文逗号分隔。</li>
+<li>在 GitHub 的预览中检查标题、段落、表格和代码；检查引用来源、署名与三项发布确认，再提交 Issue。<strong>当前流程中，有实际仓库写权限的成员新建投稿后会自动启动发布，因此提交前请完成自审。</strong></li>
+<li>等待 Issue 中的机器人回执。“文章已提交，正在构建部署”不是已经上线；收到部署成功的文章链接后，打开确认正文和署名。排队时间可能变化，不保证固定几分钟。</li>
+</ol>
+<p>如果这篇 Issue 是在你获得权限前提交的，或自动流程没有启动：接受邀请后，在原 Issue 下单独评论一行 <code>/发布</code> 即可。</p>
+<pre><code class="language-text">/发布
+</code></pre>
+<p>不要加引号、代码围栏、空格或其它说明；命令需与上面完全一致。请不要为同一篇文章重复新建 Issue。</p>
+<h2>账号权限和作者署名有什么区别</h2>
+<ul>
+<li><strong>仓库协作者（Collaborator）</strong>：有权限操作项目。现有发布流程要求实际权限为 write、maintain 或 admin；仅能访问公开仓库、关注仓库、被提及或填写署名，都不等于获得发布权限。</li>
+<li><strong>文章作者</strong>：由投稿表单的“署名”字段显示。请填写本人希望公开的名字或昵称，不能把添加协作者当成自动添加文章署名。</li>
+<li><strong>提交共同作者（Co-authored-by）</strong>：是 Git 提交归属标记，不能授予审核或发布权限；表单发布的代码提交目前由机器人完成。</li>
+</ul>
+<p>协作者的写入能力涉及整个仓库，并不是“只能发布自己的文章”。项目组约定：只发布或更新自己的内容，修改他人文章先沟通；不擅自修改发布流程、网站源码或删除文件。负责人保留仓库管理权限，不需要为了发布心得向成员提供管理员权限。</p>
+<h2>文章修改与重新发布</h2>
+<ol>
+<li>打开原投稿 Issue，编辑 Issue 正文，保留表单各字段标题，尤其是 <code>### 文章标题</code>、<code>### 正文</code> 和发布确认部分。</li>
+<li>预览并保存，完成自审。</li>
+<li>保存后新发一条精确的 <code>/发布</code> 评论，等待新的部署回执。也可以移除再重新添加“已采纳”标签来触发；已有标签原地不动不会产生新的触发事件。</li>
+<li>检查原文章链接。系统会沿用同一 Issue 对应的文章网址和首次发布日期，后续修改短名不会迁移旧文章网址。</li>
+</ol>
+<p>只编辑 Issue 不会自动更新网站。发布期间不要继续编辑正文；流程会核对正文版本，发现变化便停止，需要在最终修改后重新触发。关闭 Issue 也不会自动撤稿；撤稿请联系负责人移除对应文章并重新部署。</p>
+<h2>网站各项功能怎样使用</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>使用方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大脑开场</td>
+<td>查看 19 个具名 EEG 点；点击任意一个进入脑电过渡和时间线，也可使用“跳过动画”</td>
+</tr>
+<tr>
+<td>大脑操作</td>
+<td>拖动旋转，Shift 拖动平移；下方可切换移动模式、复位；时间线可重播开场</td>
+</tr>
+<tr>
+<td>模型时间线</td>
+<td>通过页面前后导航或主节点浏览八个模型；SVM 标为已完成，后续模型保留原有彩色样式</td>
+</tr>
+<tr>
+<td>项目与组会记录</td>
+<td>在 SVM 前的三个小节点查看项目成立、两次组会记录</td>
+</tr>
+<tr>
+<td>知识图谱</td>
+<td>悬停主节点查看关联文章，点击文章入口阅读；点击当前主节点可打开模型详情及文章列表</td>
+</tr>
+<tr>
+<td>项目进展</td>
+<td>阅读阶段工作与实验记录；并非心得投稿表单的目标栏目</td>
+</tr>
+<tr>
+<td>未来展望</td>
+<td>阅读后续路线、Transformer 到 Mamba 预习报告等学习资料</td>
+</tr>
+<tr>
+<td>心得分享</td>
+<td>查看成员和访客的笔记、复盘与工具经验；表单文章发布到此栏目</td>
+</tr>
+<tr>
+<td>资源与关于</td>
+<td>查看项目资源、结果来源和站点说明</td>
+</tr>
+</tbody></table>
+<p>当前知识图谱归属按栏目生成：普通心得归到 SVM（GEN 1），未来展望归到 Bi-Mamba（GEN 8）；已单独标记的早期项目与组会记录位于 SVM 前。<strong>填写“Mamba”等标签不会自动把心得移到对应模型节点。</strong> 若需调整归属或添加主节点，请联系负责人。</p>
+<h2>发什么，如何检查</h2>
+<p>建议写清“做了什么、遇到什么问题、怎样解决、下一步是什么”，篇幅不必长。命令、代码和报错用代码块；图表需解释单位、数据来源和适用条件。普通 Markdown 表格、列表与代码块可用；目前不要依赖数学公式自动排版，公式可用代码块或纯文本表达。</p>
+<p>投稿内容会经过净化，不执行脚本、iframe 或事件代码；外部图片可能被移除。不要依赖外链图片承载关键结论，必要时先与负责人沟通安排站内素材。文章公开后，Issue 本身也公开。</p>
+<p>发布前检查：作者和引用准确，三项确认均已勾选；没有个人医疗信息、可识别被试的数据、原始 EDF/FIF、密码或密钥；实验结果标注版本与评估方式，不把研究模型写成临床诊断工具。发布条款以实际表单和投稿指南为准。</p>
+<h2>没有上线时怎样处理</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>处理方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不能自发布</td>
+<td>确认已接受邀请、当前登录账号正确且有写权限；在原 Issue 评论 <code>/发布</code></td>
+</tr>
+<tr>
+<td>已提交但网页没出现</td>
+<td>先看 Issue 回执与 <a href="https://github.com/cmnx666/weegoto/actions">Actions</a>；构建成功后还需部署成功</td>
+</tr>
+<tr>
+<td>提示正文被修改</td>
+<td>保存最终正文后重新评论 <code>/发布</code>，发布期间停止编辑</td>
+</tr>
+<tr>
+<td>表单解析或条款错误</td>
+<td>检查是否删改字段标题、漏填标题/摘要/正文或未勾选三项确认，修正后重新发布</td>
+</tr>
+<tr>
+<td>流程失败</td>
+<td>打开回执中的日志；向负责人提供 Issue 链接和失败步骤，不要粘贴密钥或个人数据</td>
+</tr>
+<tr>
+<td>看到旧内容</td>
+<td>确认本次部署成功后，用 Ctrl + F5 刷新；仍不对则告知负责人具体文章链接</td>
+</tr>
+</tbody></table>
+<p>不熟悉错误原因时请先沟通，不要通过放宽仓库权限或修改自动发布流程来解决。</p>
+<h2>负责人：怎样邀请成员</h2>
+<p>打开<a href="https://github.com/cmnx666/weegoto/settings/access">仓库协作者设置</a>，在访问管理中选择添加人员，输入成员准确的 GitHub 用户名，核对账号后发送邀请。页面名称可能随 GitHub 更新变化；个人仓库与组织仓库的权限选项也可能不同。成员接受后，再确认其实际写权限；本仓库目前属于个人账号。不要为了心得发布提供管理员权限或共享自己的登录凭据。</p>
+<p>成员可以自行审核自己的稿件，是项目组的协作约定，网站没有另设“仅限本人文章”的编辑权限系统。若以后需要更细的隔离，应另行设计流程。</p>
+<h2>维护者可选：直接编辑 Markdown</h2>
+<p>只使用网站仓库，不要把整个研究项目和原始数据推送上去。</p>
+<ul>
+<li>心得：<code>src/content/notes/</code></li>
+<li>项目进展：<code>src/content/progress/</code></li>
+<li>未来展望：<code>src/content/outlook/</code></li>
+<li>页面：<code>src/pages/</code>；主页组件：<code>src/components/</code></li>
+</ul>
+<p>普通成员用投稿表单即可，无需安装环境。维护者若确需改文件，建议新建分支和 Pull Request，避免覆盖其他人的修改。文章开头的基本元数据示例：</p>
+<pre><code class="language-yaml">---
+title: &quot;我的心得标题&quot;
+description: &quot;一句话说明内容&quot;
+date: 2026-11-05
+tags: [&quot;学习笔记&quot;]
+author: &quot;你的公开署名&quot;
+source: team
+draft: false
+---
+</code></pre>
+<p>之后写 Markdown 正文。草稿设 <code>draft: true</code> 可避免网站展示，但提交到公开仓库的文件仍是公开的，不能用于存放隐私。已有 Issue 自动生成文章应继续用原 Issue 更新，以免两条维护路径互相覆盖。</p>
+<p>本地维护命令：Node.js 至少 22.12；首次 <code>npm ci</code>，开发 <code>npm run dev</code>，提交前 <code>npm run validate</code>。推送 main 后会启动部署；不要直接修改生成目录 <code>dist/</code>，也不要双击其 HTML 当作正式预览。是否上线以 GitHub Pages 部署回执为准。</p>
+<p>权限与邀请操作参考：<a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository">GitHub 官方协作者邀请说明</a>。</p>
+</main><footer>weegoto 项目组 · 可使用浏览器打印功能保存为 PDF。<a href="/member-guide.md" download>下载 Markdown 原文</a></footer></body></html>

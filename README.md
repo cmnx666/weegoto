@@ -1,6 +1,6 @@
 # weegoto 网站维护入口（2026-10-19 更新）
 
-项目组成员请先读 [项目组成员使用说明](public/member-guide.md)，包含协作者邀请、心得自审发布、网站功能和更新排错。网站投稿指南也提供下载入口。
+项目组成员请先读 [项目组成员使用说明（HTML）](https://weegoto.top/member-guide.html)，包含协作者邀请、心得自审发布、网站功能和更新排错。网站投稿指南也提供阅读入口；Markdown 源文保存在 `public/member-guide.md`。
 
 - 环境：Node.js ≥22.12，推荐 Node 22；安装使用 `npm ci`。
 - 开发：`npm run dev`；生产预览：`npm run preview`；部署前完整检查：`npm run validate`。
